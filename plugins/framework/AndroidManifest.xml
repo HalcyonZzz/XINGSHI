@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" />
+
+    <application>
+        <!-- 聊天通道需要持续保持外部平台连接：targetSdk 35 下 dataSync 不允许由开机/后台拉起，
+             使用 specialUse 由用户绑定后常驻，开机广播再恢复。 -->
+        <service
+            android:name="com.xingshi.ai.plugins.host.PluginChannelService"
+            android:enabled="true"
+            android:exported="false"
+            android:foregroundServiceType="specialUse"
+            android:stopWithTask="false">
+            <property
+                android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
+                android:value="chat_channel_sync" />
+        </service>
+
+        <receiver
+            android:name="com.xingshi.ai.plugins.host.PluginChannelBootReceiver"
+            android:enabled="true"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+            </intent-filter>
+        </receiver>
+    </application>
+</manifest>

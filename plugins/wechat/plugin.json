@@ -1,0 +1,12 @@
+{
+  "id": "wechat",
+  "name": "微信",
+  "author": "星识",
+  "description": "微信聊天通道：扫码登录、联系人映射、消息收发",
+  "icon": "Message",
+  "version": "1.0.0",
+  "entry": "com.xingshi.ai.feature.wechat.WeChatPlugin",
+  "packageUrl": "",
+  "sha256": "",
+  "minHostApi": 1
+}

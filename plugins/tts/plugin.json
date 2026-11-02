@@ -1,0 +1,12 @@
+{
+  "id": "tts",
+  "name": "语音合成",
+  "author": "星识",
+  "description": "把正式文字回复合成为可播放语音，并供语音通话使用",
+  "icon": "VolumeUp",
+  "version": "1.4.3",
+  "entry": "com.xingshi.ai.plugins.tts.TtsProviderPlugin",
+  "packageUrl": "",
+  "sha256": "",
+  "minHostApi": 3
+}

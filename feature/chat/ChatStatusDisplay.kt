@@ -1,0 +1,33 @@
+package com.xingshi.ai.feature.chat
+
+/**
+ * 后端聊天阶段文案的稳定 key。
+ *
+ * 消费方（后台消费者/ViewModel）只传递 key，不拼最终中文；组合式页面用 themeText(key)
+ * 走主题文案回退链，切换语言后随主题状态重渲染。
+ */
+object ChatStatusDisplay {
+    const val NETWORK_UNREACHABLE = "ui_chat_status_network_unreachable"
+    const val NETWORK_UNCONFIRMED = "ui_chat_status_network_unconfirmed"
+    const val BACKEND_UNCONFIRMED = "ui_chat_status_backend_unconfirmed"
+    const val LOCAL_SAVED = "ui_chat_status_local_saved"
+    const val IMAGE_SAVED = "ui_chat_status_image_saved"
+    const val LINK_MISSING = "ui_chat_status_link_missing"
+    const val RESULT_READY = "ui_chat_status_result_ready"
+    const val UNKNOWN_READING = "ui_chat_status_unknown_reading"
+    const val QUEUED = "ui_chat_status_queued"
+    const val PREPARING = "ui_chat_status_preparing"
+    const val GENERATING = "ui_chat_status_generating"
+    const val ACCEPTED = "ui_chat_status_accepted"
+    const val GENERATING_ACCEPTED = "ui_chat_status_generating_accepted"
+    const val SERVICE_BUSY = "ui_chat_status_service_busy"
+    const val REQUEST_REJECTED = "ui_chat_status_request_rejected"
+    const val REPLY_SAVED = "ui_chat_status_reply_saved"
+    const val EXTERNAL_UNKNOWN = "ui_chat_status_external_unknown"
+    const val REPLAY_AVAILABLE = "ui_chat_status_replay_available"
+    const val ROUTE_CONFLICT = "ui_chat_status_route_conflict"
+    const val DELIVERED = "ui_chat_status_delivered"
+    const val EXTERNAL_FAILED = "ui_chat_status_external_failed"
+    const val CHANNEL_PENDING = "ui_chat_status_channel_pending"
+    const val REGENERATION_ACCEPTED = "ui_chat_status_regeneration_accepted"
+}

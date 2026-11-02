@@ -1,0 +1,12 @@
+{
+  "id": "stt",
+  "name": "语音识别",
+  "author": "星识",
+  "description": "录音后使用云端语音识别转写为文字，沿原对话入口发送",
+  "icon": "Mic",
+  "version": "1.0.0",
+  "entry": "com.xingshi.ai.plugins.stt.SiliconFlowSttPlugin",
+  "packageUrl": "",
+  "sha256": "",
+  "minHostApi": 1
+}
