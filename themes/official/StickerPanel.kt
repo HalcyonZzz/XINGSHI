@@ -56,10 +56,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import com.xingshi.ai.theme.framework.themeText
 
-/**
- * 表情包面板 - 显示可发送的表情包
- * 支持从assets目录和本地导入加载
- */
+ 
 @Composable
 fun StickerPanel(
     isVisible: Boolean,
@@ -101,7 +98,7 @@ fun StickerPanel(
                 .background(bgColor)
                 .padding(vertical = 12.dp)
         ) {
-            // Header
+            
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -116,7 +113,7 @@ fun StickerPanel(
                     color = onSurface
                 )
                 Row {
-                    // Delete all button
+                    
                     Box(
                         modifier = Modifier
                             .size(32.dp)
@@ -133,7 +130,7 @@ fun StickerPanel(
                         )
                     }
                     Spacer(modifier = Modifier.width(8.dp))
-                    // Import button
+                    
                     Box(
                         modifier = Modifier
                             .size(32.dp)

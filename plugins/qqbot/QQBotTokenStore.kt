@@ -10,11 +10,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
-/**
- * 插件持久化：必须跨插件类加载器安全。
- * DataStore 活跃实例无法随插件重载关闭，重载后同一文件出现两个实例会直接崩溃；
- * 改用平台 SharedPreferences（进程级单例，与类加载器无关）。
- */
+ 
 class QQBotTokenStore(context: Context) {
     private val prefs: SharedPreferences =
         context.applicationContext.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
@@ -47,9 +43,9 @@ class QQBotTokenStore(context: Context) {
         bump()
     }
 
-    /** 卸载清理：只清本插件自己的登录材料、令牌与映射，不触碰宿主聊天/附件。 */
+     
     fun clearAll() {
-        // 先清平台可见的映射/设置，再清加密凭据；后者失败也不能让前者残留
+        
         prefs.edit().clear().apply()
         bump()
         runCatching { secureStore.clearAll() }

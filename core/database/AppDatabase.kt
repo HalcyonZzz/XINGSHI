@@ -97,8 +97,8 @@ abstract class AppDatabase : RoomDatabase() {
         }
 
         private fun buildDatabase(context: Context): AppDatabase {
-            // autoBackupIfNeeded 做文件 copyTo IO，不应在 getDatabase 首次调用路径
-            // （可能在主线程）同步执行。这里只构建数据库，备份交给 Application.bgScope 异步触发。
+            
+            
             return openVerifiedDatabase(context, allowRecovery = true).also {
                 clearRecoveryFailure(context)
             }
@@ -146,18 +146,18 @@ abstract class AppDatabase : RoomDatabase() {
                 runCatching { candidate?.close() }
                 if (!allowRecovery) throw e
 
-                // 提取异常链中的所有错误信息
+                
                 val messages = extractExceptionMessages(e)
 
-                // 严格区分两种完全不同的情况：
-                //   A) Schema Identity Hash 不匹配 → Entity 定义变了，需要迁移
-                //   B) WAL/Journal 文件损坏 → 数据完整性问题，应修复而非重建
+                
+                
+                
                 val isRealSchemaMismatch = messages.any { it.contains("identity hash") }
                 val isCorruption = messages.any { it.contains("cannot verify the data integrity") }
 
                 when {
                     isRealSchemaMismatch -> {
-                        // 真正的 Schema 变化：先尝试从备份恢复，恢复失败才重建
+                        
                         SecureLog.w("AppDatabase", "Schema identity hash mismatch detected")
                         backupBeforeRecovery(context)
                         if (tryRecoverFromBackup(context)) {
@@ -173,15 +173,15 @@ abstract class AppDatabase : RoomDatabase() {
                         }
                     }
                     isCorruption && !isRealSchemaMismatch -> {
-                        // WAL/Journal 损坏：先尝试修复，绝不直接删库
+                        
                         SecureLog.w("AppDatabase", "Database corruption detected, attempting repair...")
                         backupBeforeRecovery(context)
 
-                        // 尝试1：删除损坏的 WAL/SHM 文件让 SQLite 回退到主 DB
+                        
                         if (tryRepairWalFiles(context)) {
                             SecureLog.i("AppDatabase", "WAL repair succeeded")
                             runCatching { createDatabase(context).also { verifyDatabaseCanOpen(it) } }.getOrElse {
-                                // WAL 修复后仍打不开，尝试从备份恢复
+                                
                                 recoverDatabase(context)
                                 createDatabase(context).also {
                                     verifyDatabaseCanOpen(it)
@@ -189,7 +189,7 @@ abstract class AppDatabase : RoomDatabase() {
                                 }
                             }
                         } else {
-                            // 尝试2：从备份恢复
+                            
                             recoverDatabase(context)
                             createDatabase(context).also {
                                 verifyDatabaseCanOpen(it)
@@ -198,7 +198,7 @@ abstract class AppDatabase : RoomDatabase() {
                         }
                     }
                     else -> {
-                        // 其他未知错误：备份后尝试恢复
+                        
                         SecureLog.e("AppDatabase", "Unexpected database error: ${e.message}", e)
                         backupBeforeRecovery(context)
                         recoverDatabase(context)
@@ -211,31 +211,25 @@ abstract class AppDatabase : RoomDatabase() {
             }
         }
 
-        /**
-         * 提取异常链中所有层级的错误信息用于分类判断
-         */
+         
         private fun extractExceptionMessages(e: Throwable): List<String> {
             val messages = mutableListOf<String>()
             var current: Throwable? = e
             while (current != null) {
                 current.message?.let { messages.add(it) }
                 current = current.cause
-                if (current == e) break // 防止循环引用
+                if (current == e) break 
             }
             return messages
         }
 
-        /**
-         * 把 WAL/SHM 移出数据库目录（而不是删除），让 SQLite 回退到主数据库文件。
-         * 这是覆盖安装后最常见的修复方式（Force Stop 导致 WAL 未 checkpoint）；
-         * 原件留在 recovery 目录，修错了也还能找回。
-         */
+         
         private fun tryRepairWalFiles(context: Context): Boolean {
             val dbFile = context.getDatabasePath(DB_NAME)
             val walFile = File(dbFile.path + "-wal")
             val shmFile = File(dbFile.path + "-shm")
 
-            // 主 DB 文件必须存在且非空
+            
             if (!dbFile.exists() || dbFile.length() < 512) return false
 
             var repaired = false
@@ -282,7 +276,7 @@ abstract class AppDatabase : RoomDatabase() {
             runCatching { recoveryBlockFile(context).delete() }
         }
 
-        /** 移动单个文件到 recovery 目录；重命名失败才退化为复制后删除。 */
+         
         private fun isolateFile(context: Context, file: File, reason: String): Boolean {
             if (!file.exists()) return false
             return runCatching {
@@ -295,7 +289,7 @@ abstract class AppDatabase : RoomDatabase() {
             }.getOrDefault(false)
         }
 
-        /** 隔离当前数据库主文件与 WAL/SHM/Journal（不删除，保留原件）。 */
+         
         private fun isolateDatabaseFiles(context: Context, reason: String) {
             val dbFile = context.getDatabasePath(DB_NAME)
             listOf(
@@ -306,10 +300,7 @@ abstract class AppDatabase : RoomDatabase() {
             ).forEach { isolateFile(context, it, reason) }
         }
 
-        /**
-         * 只把真正的备份文件当候选：文件名含 corrupted / broken 的是刚隔离出来的损坏件，
-         * 绝不能再拿它覆盖主库。候选必须先通过 integrity_check 验证。
-         */
+         
         private fun validRecoveryBackups(context: Context): List<File> {
             val dbFile = context.getDatabasePath(DB_NAME)
             val recoveryDir = File(dbFile.parentFile, "recovery")
@@ -342,13 +333,11 @@ abstract class AppDatabase : RoomDatabase() {
             }
         }.getOrDefault(false)
 
-        /**
-         * 尝试从 recovery 目录恢复最新的有效备份
-         */
+         
         private fun tryRecoverFromBackup(context: Context): Boolean {
             val dbFile = context.getDatabasePath(DB_NAME)
             val backup = validRecoveryBackups(context).firstOrNull() ?: return false
-            // 覆盖前先把当前主库隔离，恢复失败仍可回退
+            
             isolateDatabaseFiles(context, "before_restore")
             backup.copyTo(dbFile, overwrite = true)
             listOf("-wal", "-shm", "-journal").forEach { suffix ->
@@ -388,15 +377,15 @@ abstract class AppDatabase : RoomDatabase() {
         }
 
         private fun createDatabase(context: Context): AppDatabase {
-            // EncryptedFile-based DB encryption — disabled for troubleshooting
-            // com.xingshi.ai.security.EncryptedDatabaseWrapper.prepareDatabase(context)
+            
+            
             return Room.databaseBuilder(
                 context.applicationContext,
                 AppDatabase::class.java,
                 DB_NAME
             )
                 .addMigrations(*MIGRATIONS)
-                // Account databases use the current baseline; incompatible data must fail without reset.
+                
                 .build()
         }
 
@@ -406,18 +395,14 @@ abstract class AppDatabase : RoomDatabase() {
         }
 
         private fun verifyDatabaseCanOpen(database: AppDatabase) {
-            // 先尝试 checkpoint WAL 文件，修复覆盖安装后可能存在的脏写
+            
             try {
                 database.openHelper.writableDatabase.execSQL("PRAGMA wal_checkpoint(TRUNCATE)")
             } catch (_: Exception) { }
             database.openHelper.writableDatabase.query("PRAGMA user_version").close()
         }
 
-        /**
-         * Move unreadable legacy DB files out of the way before creating a new DB.
-         * This handles old SQLCipher/native-incompatible databases without crashing
-         * the first main-screen render. Files stay inside app-private storage.
-         */
+         
         private fun backupBrokenDatabase(context: Context) {
             val dbFile = context.applicationContext.getDatabasePath(DB_NAME)
             val candidates = listOf(
@@ -772,12 +757,12 @@ abstract class AppDatabase : RoomDatabase() {
 
         val MIGRATION_16_17 = object : Migration(16, 17) {
             override fun migrate(db: SupportSQLiteDatabase) {
-                // 确保 deviceId 列存在（处理跳过 12→13 的旧 DB）
+                
                 addColumnIfMissing(db, "chat_messages", "deviceId", "TEXT NOT NULL DEFAULT ''")
                 addColumnIfMissing(db, "memory_entries", "deviceId", "TEXT NOT NULL DEFAULT ''")
                 addColumnIfMissing(db, "temp_memory", "deviceId", "TEXT NOT NULL DEFAULT ''")
                 addColumnIfMissing(db, "token_usage", "deviceId", "TEXT NOT NULL DEFAULT ''")
-                // 清理可能残留的多余索引
+                
                 db.execSQL("DROP INDEX IF EXISTS index_chat_messages_companionId_deviceId")
                 db.execSQL("DROP INDEX IF EXISTS index_memory_entries_companionId_deviceId")
                 db.execSQL("DROP INDEX IF EXISTS index_temp_memory_companionId_deviceId")
@@ -832,7 +817,7 @@ abstract class AppDatabase : RoomDatabase() {
         )
 
         private var lastBackupTime: Long = 0L
-        private val BACKUP_INTERVAL_MS = 2 * 60 * 60 * 1000L  // 每2小时自动备份一次，缩短间隔减少覆盖安装时的数据丢失窗口
+        private val BACKUP_INTERVAL_MS = 2 * 60 * 60 * 1000L  
 
         fun backupDatabase(context: Context): Boolean {
             return try {

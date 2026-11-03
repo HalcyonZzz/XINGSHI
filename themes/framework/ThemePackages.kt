@@ -10,14 +10,7 @@ sealed interface ThemePackageResult {
     data class Failure(val message: String) : ThemePackageResult
 }
 
-/**
- * 主题包格式（zip）：
- *   theme.json              清单（ThemeManifest）
- *   strings/<lang>.json     { "key": "value" } 文案
- *   dex/classes.dex         可选代码布局
- *   preview.png / icon.png  可选预览
- * 这里只做与 Android 无关的纯文件校验与解包，便于 JVM 单测。
- */
+ 
 object ThemePackages {
 
     const val MANIFEST_NAME = "theme.json"
@@ -32,7 +25,7 @@ object ThemePackages {
         else -> null
     }
 
-    /** 需要真正解析的小文件上限：清单与文案，避免把图片/DEX 读进内存。 */
+     
     private const val MAX_TEXT_ENTRY_BYTES = 4L * 1024 * 1024
     private const val DEX_ENTRY = "dex/classes.dex"
     private val ENTRY_CLASS = Regex("^[A-Za-z_$][A-Za-z0-9_$.]{1,255}$")
@@ -70,7 +63,7 @@ object ThemePackages {
                             if (entryBytes > MAX_TEXT_ENTRY_BYTES) return ThemePackageResult.Failure("主题包文本文件过大: $name")
                             sink.write(chunk, 0, read)
                         } else if (isDex && name == DEX_ENTRY && !dexMagicOk) {
-                            // 只判断首个 dex 的魔数，不缓存 DEX 本体
+                            
                             if (entryBytes == read.toLong() && read >= 4) {
                                 val header = chunk.copyOfRange(0, 4).toString(Charsets.US_ASCII)
                                 if (header == "dex\n") dexMagicOk = true
@@ -110,10 +103,7 @@ object ThemePackages {
         data class Failure(val message: String) : StagedResult
     }
 
-    /**
-     * 校验并解包到临时 staging 目录，尚未替换旧包。
-     * 调用方先对 staging 做代码加载验证，成功后 [commitStaging]，失败 [discardStaging]。
-     */
+     
     fun stageTo(bytes: ByteArray, target: File): StagedResult {
         val inspected = inspect(bytes)
         if (inspected is ThemePackageResult.Failure) return StagedResult.Failure(inspected.message)
@@ -153,7 +143,7 @@ object ThemePackages {
         }
     }
 
-    /** staging 验证通过后原子替换目标目录；旧目录在替换成功后删除。失败返回错误信息。 */
+     
     fun commitStaging(staging: File, target: File): String? {
         val backup = File(target.absoluteFile.parentFile, "${target.name}.bak-${System.nanoTime()}")
         return try {
@@ -174,7 +164,7 @@ object ThemePackages {
         staging.deleteRecursively()
     }
 
-    /** 校验并解包到 [target]（stage + commit），保留给不需要代码验证的纯声明式调用与单测。 */
+     
     fun unpackTo(bytes: ByteArray, target: File): ThemePackageResult {
         val inspected = inspect(bytes)
         if (inspected is ThemePackageResult.Failure) return inspected
@@ -189,7 +179,7 @@ object ThemePackages {
         return inspected
     }
 
-    /** 从 zip 字节中按名读取单个条目（用于市场图标/预览），超出上限返回 null。 */
+     
     fun readEntry(bytes: ByteArray, name: String, maxBytes: Long = 2L * 1024 * 1024): ByteArray? {
         if (!safePath(name)) return null
         return try {
@@ -198,7 +188,7 @@ object ThemePackages {
                 while (true) {
                     val entry = zip.nextEntry ?: break
                     if (entry.isDirectory || entry.name != name) {
-                        // 仍要顺序读掉当前条目
+                        
                         while (zip.read(chunk) >= 0) Unit
                         continue
                     }
@@ -220,7 +210,7 @@ object ThemePackages {
         }
     }
 
-    /** 从已解包目录读取清单与文案，用于冷启动加载。 */
+     
     fun load(directory: File): ThemePackageResult {
         val manifestFile = File(directory, MANIFEST_NAME)
         if (!manifestFile.isFile) return ThemePackageResult.Failure("主题文件缺失")

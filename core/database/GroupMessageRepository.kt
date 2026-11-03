@@ -7,7 +7,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 
 class GroupMessageRepository(private val groupMessageDao: GroupMessageDao) {
-    // --- 获取最近的消息，按时间正序排列（UI直接显示） ---
+    
     fun getMessagesForGroup(groupId: Long, limit: Int = 50): Flow<List<GroupMessage>> =
         groupMessageDao.getRecentMessagesForGroup(groupId, limit)
             .map { list -> list.map { ChatMessageCrypto.decryptFromStorage(it) }.reversed() }

@@ -24,10 +24,7 @@ data class ThemeState(
     val revision: Long = 0L
 )
 
-/**
- * 主题运行时：唯一的选择状态与主题/语言/帧率应用入口。
- * 官方主题由宿主在启动时注册为默认实现；框架不依赖具体主题。
- */
+ 
 object ThemeRuntime {
 
     private var appContext: Context? = null
@@ -43,10 +40,7 @@ object ThemeRuntime {
     private val _state = MutableStateFlow(ThemeState())
     val state: StateFlow<ThemeState> = _state.asStateFlow()
 
-    /**
-     * 宿主恢复路径：作者 Wrap 不组合宿主内容时，宿主直接以官方内容接管，
-     * 不依赖被作者省略的 MainScreen 组合，进入现有主题管理并可恢复官方。
-     */
+     
     private val _recoveryMode = MutableStateFlow(false)
     val recoveryMode: StateFlow<Boolean> = _recoveryMode.asStateFlow()
 
@@ -89,7 +83,7 @@ object ThemeRuntime {
         val p = prefs ?: return
         val active = eng.resolveActive()
         if (!refreshCodeUi(active)) {
-            // 代码主题冷启动不可用：回退官方并持久化，避免停在坏主题上
+            
             p.selectedThemeId = OFFICIAL_THEME_ID
             codeUi = null
             codeUiForTheme = null
@@ -135,12 +129,9 @@ object ThemeRuntime {
 
     fun inputBar(): ThemeInputBar = engine?.resolveActive()?.manifest?.inputBar ?: ThemeInputBar()
 
-    // ---------------- 选择与应用 ----------------
+    
 
-    /**
-     * 切换顺序：候选主题（代码包）先在磁盘上实际加载成功，再提交选择并发布状态。
-     * 加载失败明确返回 Failure，保留原当前主题，不写偏好、不进入坏主题。
-     */
+     
     fun switchTheme(id: String): ThemeSwitchResult {
         val eng = engine ?: return ThemeSwitchResult.Failure("主题框架未初始化")
         val target = eng.find(id) ?: return ThemeSwitchResult.Failure("主题未安装")
@@ -172,10 +163,7 @@ object ThemeRuntime {
         return installPackageInternal(bytes, expectedId = entry.manifest.id)
     }
 
-    /**
-     * 安装顺序：校验 → staging 解包 → 代码包实际加载验证 → 原子提交 → 重载/发布状态。
-     * 任一失败保留旧包与当前选择；代码主题验证通过后才写选择与就绪状态。
-     */
+     
     private fun installPackageInternal(bytes: ByteArray, expectedId: String?): ThemeInstallOutcome {
         val eng = engine ?: return ThemeInstallOutcome.Failure("主题框架未初始化")
         val stagedResult = eng.stage(bytes, expectedId)
@@ -189,7 +177,7 @@ object ThemeRuntime {
         }
         val outcome = eng.commit(staged)
         if (outcome is ThemeInstallOutcome.Success) {
-            // 当前主题同 ID 更新：强制重载代码与外观，避免新颜色/文案配旧布局
+            
             val selected = prefs?.selectedThemeId
             if (selected == staged.manifest.id) codeUiForTheme = null
             refresh()
@@ -197,7 +185,7 @@ object ThemeRuntime {
         return outcome
     }
 
-    /** 市场图标/预览图：按资产包内条目名读取，缺失或超限返回 null。 */
+     
     fun marketArtwork(entry: ThemeCatalogEntry, name: String): android.graphics.Bitmap? {
         val ctx = appContext ?: return null
         val cacheKey = entry.asset + "#" + name
@@ -230,7 +218,7 @@ object ThemeRuntime {
 
     fun hasUpdate(id: String): Boolean = engine?.hasUpdate(id, marketCatalogOrNull()) ?: false
 
-    // ---------------- 文案 ----------------
+    
 
     fun resolveText(key: String, args: List<Any> = emptyList()): String {
         val ctx = appContext ?: return ThemeTextResolver.PLACEHOLDER
@@ -246,7 +234,7 @@ object ThemeRuntime {
         return resolver.resolve(key, args)
     }
 
-    // ---------------- 外观 ----------------
+    
 
     fun appearance(context: Context): ResolvedAppearance {
         val eng = engine
@@ -280,7 +268,7 @@ object ThemeRuntime {
         0xFFC9DCEE.toInt(), 0xFF5E84A6.toInt()
     )
 
-    // ---------------- 语言 ----------------
+    
 
     fun availableLanguages(): List<String> {
         val active = engine?.resolveActive()?.manifest
@@ -298,7 +286,7 @@ object ThemeRuntime {
         return true
     }
 
-    /** 宿主 attachBaseContext 调用：应用语言与深浅模式，不复制语言表到宿主。 */
+     
     fun applyBaseContextLocale(base: Context): Context {
         val p = SharedThemePreferences(base)
         val language = p.language
@@ -329,7 +317,7 @@ object ThemeRuntime {
         }
     }
 
-    // ---------------- 显示模式 ----------------
+    
 
     fun setThemeMode(mode: ThemeMode) {
         prefs?.themeMode = mode.name
@@ -343,11 +331,11 @@ object ThemeRuntime {
         ThemeMode.SYSTEM
     }
 
-    // ---------------- 代码布局 ----------------
+    
 
     fun codeUi(): ThemeCodeUi? = codeUi
 
-    /** 返回 false 表示代码包声明了入口但加载失败（调用方回退官方）。 */
+     
     private fun refreshCodeUi(active: InstalledTheme): Boolean {
         if (active.isOfficial || active.manifest.entry.isBlank()) {
             codeUi = null
@@ -373,7 +361,7 @@ object ThemeRuntime {
             .toList()
         if (dexFiles.isEmpty()) null
         else {
-            // Android 14+ 动态加载要求目标 API 34+ 的代码文件只读
+            
             dexFiles.forEach { dex -> runCatching { dex.setReadOnly() } }
             val optimized = File(appContext?.codeCacheDir ?: directory, "theme-code").apply { mkdirs() }
             val dexPaths = dexFiles.joinToString(File.pathSeparator) { it.absolutePath }

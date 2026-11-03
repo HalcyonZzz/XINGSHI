@@ -5,22 +5,7 @@ import com.xingshi.ai.database.model.MemoryCategory
 import com.xingshi.ai.database.model.MessageType
 import kotlinx.serialization.Serializable
 
-/**
- * 导出/导入数据根容器。
- *
- * 所有加密字段在导出时已解密为明文，导入后由 [BackupImportService] 重新加密存储。
- *
- * @param version 格式版本号，用于向后兼容
- * @param exportedAt 导出时间戳 (epoch millis)
- * @param appVersion 导出来源的 app versionName
- * @param companions 陪聊对象
- * @param chatMessages 一对一聊天消息（已解密）
- * @param chatGroups 群聊定义
- * @param groupMessages 群聊消息（已解密）
- * @param memoryEntries 长期记忆（已解密）
- * @param tempMemories 短期记忆
- * @param tokenUsages Token 使用统计
- */
+ 
 @Serializable
 data class BackupData(
     val version: Int = 1,

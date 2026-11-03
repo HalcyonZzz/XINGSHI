@@ -52,7 +52,7 @@ import androidx.navigation.NavHostController
 import com.xingshi.ai.themes.official.R
 import com.xingshi.ai.theme.framework.themeText
 
-/** 底部导航项数据类 */
+ 
 data class BottomNavItem(
     val title: String,
     val selectedIcon: ImageVector,
@@ -60,7 +60,7 @@ data class BottomNavItem(
     val route: String
 )
 
-/** 底部毛玻璃导航栏 — 独立重组域 */
+ 
 @Composable
 fun FloatingGlassBottomNav(
     items: List<BottomNavItem>,
@@ -128,7 +128,7 @@ fun FloatingGlassBottomNav(
     }
 }
 
-/** 微信风格顶部栏 — 独立重组域 */
+ 
 @Composable
 fun WeChatTopBar(
     title: String,
@@ -173,7 +173,7 @@ fun WeChatTopBar(
     }
 }
 
-/** 首页顶部栏操作按钮 */
+ 
 @Composable
 fun HomeTopBarActions(navController: NavHostController) {
     val iconBgColor = MaterialTheme.colorScheme.surfaceVariant

@@ -39,6 +39,8 @@
     <string name="chat_send">보내기</string>
     <string name="close">닫기</string>
     <string name="companion_delete">삭제</string>
+    <string name="ui_companion_delete_pending">컴패니언을 삭제하는 중입니다. 확인 후 로컬 데이터를 삭제하세요.</string>
+    <string name="ui_companion_delete_failed">삭제가 아직 확인되지 않았습니다. 다시 연결해 확인하세요.</string>
     <string name="companion_group_chat">그룹</string>
     <string name="companion_no_companions">아직 스마트 어시스턴트가 없습니다</string>
     <string name="confirm_delete">삭제 확인</string>

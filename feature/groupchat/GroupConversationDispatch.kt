@@ -14,7 +14,7 @@ suspend fun dispatchGroupConversation(
     snapshot: GroupConversationSnapshot,
     sourceMessageId: Long,
     mentions: GroupMentions,
-    /** 已确认可见边界；>0 时只同步该边界之后的内容，不把旧群史当默认全量。 */
+     
     syncSinceMessageId: Long = 0L
 ): List<Long> {
     require(snapshot.messages.any { it.id == sourceMessageId })

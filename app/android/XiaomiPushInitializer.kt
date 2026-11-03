@@ -4,13 +4,7 @@ import android.app.Application
 import com.xingshi.ai.common.SecureLog
 import com.xingshi.ai.push.PushConfig
 
-/**
- * 小米 PUSH 初始化器。
- *
- * 请先从小米开放平台下载 MiPush SDK aar 放置到 build-tools/vendor-android，
- * 并在 app/android/build.gradle.kts 中取消 `implementation(rootProject.files("build-tools/vendor-android/xiaomi-push-xxx.aar"))` 的注释。
- * 然后创建 com.xingshi.ai.push.receiver.XiaomiPushReceiver 继承 com.xiaomi.mipush.sdk.PushMessageReceiver。
- */
+ 
 object XiaomiPushInitializer {
 
     private const val TAG = "XiaomiPush"

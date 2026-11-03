@@ -74,20 +74,7 @@ import com.xingshi.ai.theme.framework.ThemePageItem
 import com.xingshi.ai.theme.framework.ThemePageSlot
 import com.xingshi.ai.theme.framework.ThemePages
 
-/**
- * OriginOS 6 适配中心。
- *
- * 集中展示并引导用户逐项开启 OriginOS 6 / IQOO 上的后台保活相关设置：
- *   1. 通知权限（运行时）
- *   2. 忽略电池优化
- *   3. 允许自启动
- *   4. 允许后台高耗电
- *   5. 后台弹出界面
- *   6. 精确闹钟（前台服务 6 小时超时后的兜底）
- *
- * 控制论模型：每项是一个状态机 S ∈ {未配置, 已配置}，传感器读取系统真实状态，
- * 用户点击 → 执行跳转（执行器）；onResume 后回到本页会重新读取状态（反馈）。
- */
+ 
 @Composable
 fun OriginOSAdaptionScreen(onNavigateBack: () -> Unit) {
     val context = LocalContext.current
@@ -136,7 +123,7 @@ fun OriginOSAdaptionScreen(onNavigateBack: () -> Unit) {
 private fun OriginOSAdaptionScreenContent(onNavigateBack: () -> Unit) {
     val context = LocalContext.current
     val colorScheme = MaterialTheme.colorScheme
-    // 触发重新读取权限状态的开关（从设置页返回后递增）
+    
     var refreshTick by remember { mutableStateOf(0) }
 
     var isVisible by remember { mutableStateOf(false) }
@@ -171,7 +158,7 @@ private fun OriginOSAdaptionScreenContent(onNavigateBack: () -> Unit) {
         ) {
             Spacer(modifier = Modifier.height(8.dp))
 
-            // 设备信息卡片
+            
             AnimatedVisibility(
                 visible = isVisible,
                 enter = fadeIn(tween(400)) + slideInVertically(tween(400)) { it / 4 }
@@ -181,12 +168,12 @@ private fun OriginOSAdaptionScreenContent(onNavigateBack: () -> Unit) {
 
             Spacer(modifier = Modifier.height(12.dp))
 
-            // 适配项列表（依据 refreshTick 重新计算状态）
+            
             AdaptionItemsGroup(isVisible, refreshTick)
 
             Spacer(modifier = Modifier.height(12.dp))
 
-            // 说明卡片
+            
             AnimatedVisibility(
                 visible = isVisible,
                 enter = fadeIn(tween(400, delayMillis = 200)) + slideInVertically(tween(400, delayMillis = 200)) { it / 4 }
@@ -198,7 +185,7 @@ private fun OriginOSAdaptionScreenContent(onNavigateBack: () -> Unit) {
         }
     }
 
-    // 回到本页时刷新状态：监听 onResume，递增 refreshTick 重新读取各项权限状态
+    
     val lifecycleOwner = androidx.lifecycle.compose.LocalLifecycleOwner.current
     androidx.compose.runtime.DisposableEffect(lifecycleOwner) {
         val observer = androidx.lifecycle.LifecycleEventObserver { _, event ->
@@ -211,9 +198,9 @@ private fun OriginOSAdaptionScreenContent(onNavigateBack: () -> Unit) {
     }
 }
 
-// ============================================================================
-// 设备信息卡片
-// ============================================================================
+
+
+
 
 @Composable
 private fun DeviceInfoCard() {
@@ -255,16 +242,16 @@ private fun DeviceInfoCard() {
     }
 }
 
-// ============================================================================
-// 适配项列表
-// ============================================================================
+
+
+
 
 @Composable
 private fun AdaptionItemsGroup(isVisible: Boolean, refreshTick: Int) {
     val colorScheme = MaterialTheme.colorScheme
     val context = LocalContext.current
 
-    // 依赖 refreshTick，每次从设置页返回后强制重新读取状态
+    
     val states = remember(refreshTick) { computeAdaptionStates(context) }
 
     AnimatedVisibility(
@@ -304,7 +291,7 @@ private data class AdaptionItem(
 
 private fun computeAdaptionStates(context: android.content.Context): List<AdaptionItem> {
     return buildList {
-        // 1. 通知权限
+        
         add(
             AdaptionItem(
                 icon = Icons.Filled.Notifications,
@@ -314,7 +301,7 @@ private fun computeAdaptionStates(context: android.content.Context): List<Adapti
                 action = { BatteryOptimizationHelper.openNotificationSettings(context) }
             )
         )
-        // 2. 忽略电池优化
+        
         add(
             AdaptionItem(
                 icon = Icons.Filled.BatteryFull,
@@ -330,18 +317,18 @@ private fun computeAdaptionStates(context: android.content.Context): List<Adapti
                 }
             )
         )
-        // 3. 自启动
+        
         add(
             AdaptionItem(
                 icon = Icons.Filled.PowerSettingsNew,
                 title = ThemeRuntime.resolveText("originos_adaption_autostart"),
                 subtitle = ThemeRuntime.resolveText("originos_adaption_autostart_desc"),
-                // 自启动无法用 API 准确判断，始终显示为"去设置"
+                
                 configured = false,
                 action = { BatteryOptimizationHelper.openAutoStartSettings(context) }
             )
         )
-        // 4. 后台高耗电（OriginOS 专属）
+        
         add(
             AdaptionItem(
                 icon = Icons.Filled.Bolt,
@@ -351,7 +338,7 @@ private fun computeAdaptionStates(context: android.content.Context): List<Adapti
                 action = { OriginOSBatteryOptimizer.openBackgroundPowerSettings(context) }
             )
         )
-        // 5. 后台弹出界面（OriginOS 专属）
+        
         add(
             AdaptionItem(
                 icon = Icons.Filled.Schedule,
@@ -361,7 +348,7 @@ private fun computeAdaptionStates(context: android.content.Context): List<Adapti
                 action = { OriginOSBatteryOptimizer.openBackgroundPopupSettings(context) }
             )
         )
-        // 6. 精确闹钟（前台服务超时后的兜底重启依赖）
+        
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.S) {
             val alarmManager = context.getSystemService(android.content.Context.ALARM_SERVICE) as android.app.AlarmManager
             add(
@@ -378,7 +365,7 @@ private fun computeAdaptionStates(context: android.content.Context): List<Adapti
                             }
                             context.startActivity(intent)
                         }.onFailure {
-                            // 兜底跳设置详情页
+                            
                             NativePermissionRequester.openAppDetailsSettings(context)
                         }
                     }
@@ -430,9 +417,9 @@ private fun AdaptionItemRow(item: AdaptionItem) {
     }
 }
 
-// ============================================================================
-// 说明卡片
-// ============================================================================
+
+
+
 
 @Composable
 private fun GuideTextCard() {

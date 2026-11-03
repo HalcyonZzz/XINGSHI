@@ -14,15 +14,15 @@ android {
         applicationId = "com.xingshi.ai"
         minSdk = 26
         targetSdk = 35
-        versionCode = 18
-        versionName = "0.1.5"
+        versionCode = 21
+        versionName = "0.1.8"
 
         manifestPlaceholders["developerName"] = "苏苏"
         manifestPlaceholders["developerOrg"] = "XingShi"
 
-        // Developer: 苏苏 / Organization: XingShi
+        
 
-        // Force multi-DEX output
+        
         multiDexEnabled = true
 
         manifestPlaceholders[
@@ -50,8 +50,8 @@ android {
         }
     }
 
-    // 签名口令读取顺序：环境变量 → Gradle 属性 → 本机 local.properties（git-ignored）。
-    // 跟踪的 gradle.properties 不再保存任何签名口令。
+    
+    
     fun signingCredential(name: String): String? {
         System.getenv(name)?.let { return it }
         (project.findProperty(name) as String?)?.let { return it }
@@ -63,7 +63,7 @@ android {
     }
 
     signingConfigs {
-        // 本地开发签名：debug 专用，沿用与历史产物相同的 keystore/别名/口令以保持可覆盖安装。
+        
         create("dev") {
             storeFile = rootProject.file("release.keystore")
             storePassword = signingCredential("XINGSHI_STORE_PASSWORD") ?: "debug_password_placeholder"
@@ -71,7 +71,7 @@ android {
             keyPassword = signingCredential("XINGSHI_KEY_PASSWORD") ?: "debug_password_placeholder"
             enableV3Signing = true
         }
-        // 发布签名：必须由环境变量 / 属性 / 本机 local.properties 提供，缺省不落占位口令。
+        
         create("release") {
             storeFile = rootProject.file("release.keystore")
             signingCredential("XINGSHI_STORE_PASSWORD")?.let { storePassword = it }
@@ -109,7 +109,7 @@ android {
         resValues = true
     }
 
-    // jniLibs are picked up automatically from jniLibs/
+    
 
     (android as com.android.build.api.dsl.ApplicationExtension).sourceSets.apply {
         getByName("main") {
@@ -125,14 +125,14 @@ android {
 }
 
 dependencies {
-    // Core modules
+    
     implementation(project(":core:common"))
     implementation(project(":core:database"))
     implementation(project(":core:domain"))
     implementation(project(":core:network"))
     implementation(libs.kotlinx.serialization.json)
 
-    // Feature modules
+    
     implementation(project(":feature:companion"))
     implementation(project(":feature:chat"))
     implementation(project(":feature:groupchat"))
@@ -161,8 +161,8 @@ dependencies {
     implementation(libs.androidx.animation.graphics)
     implementation(libs.androidx.work.runtime.ktx)
 
-    // 厂商 Push SDK
-    // OPPO / vivo 使用本地 aar，请从各厂商开放平台下载后放置到 build-tools/vendor-android
+    
+    
     val oppoAar = rootProject.file("build-tools/vendor-android/oppo-push-3.0.0.aar")
     if (oppoAar.exists()) {
         implementation(files(oppoAar))
@@ -171,12 +171,12 @@ dependencies {
     if (vivoAar.exists()) {
         implementation(files(vivoAar))
     }
-    // 华为 HMS Push 使用 Maven 依赖
+    
     implementation(libs.huawei.hms.push)
 
-    // 小米推送：请从 https://dev.mi.com/ 下载 aar 放到 build-tools/vendor-android/xiaomi-push-x.x.x.aar，
-    // 然后取消下面注释并同步 Gradle。
-    // implementation(rootProject.files("build-tools/vendor-android/xiaomi-push-6.0.1.aar"))
+    
+    
+    
 
     testImplementation(libs.junit)
     androidTestImplementation(platform(libs.androidx.compose.bom))

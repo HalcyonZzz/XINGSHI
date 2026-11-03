@@ -5,10 +5,7 @@ import com.xingshi.ai.plugins.api.VisionAnalysisResult
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 
-/**
- * 视频通话单轮汇合：话段结束立即抓帧，STT 与 Vision 并行，两法结果都合法才提交一次。
- * 只描述本轮材料，不读“最近一张图/上一次识别”的全局缓存；空转写不建立对话责任。
- */
+ 
 class VideoCallTurnCoordinator(
     private val recognize: suspend () -> SpeechRecognitionResult,
     private val analyze: suspend () -> VisionAnalysisResult,
@@ -22,7 +19,7 @@ class VideoCallTurnCoordinator(
     }
 
     suspend fun runRound(): Outcome = coroutineScope {
-        // 同一轮材料内各失败阶段只重试原识别/原帧一次，不重录、不换帧。
+        
         val stt = async {
             val first = recognize()
             if (first is SpeechRecognitionResult.Failure) recognize() else first
@@ -44,7 +41,7 @@ class VideoCallTurnCoordinator(
             is SpeechRecognitionResult.Success -> {
                 val text = speech.text.trim()
                 if (text.isBlank()) {
-                    // 空转写不提交，也不留下一条无话可答的视觉消息
+                    
                     vision.cancel()
                     Outcome.EmptySpeech
                 } else {

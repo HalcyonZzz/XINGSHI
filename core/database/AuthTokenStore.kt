@@ -5,13 +5,7 @@ import android.content.SharedPreferences
 import androidx.security.crypto.EncryptedSharedPreferences
 import androidx.security.crypto.MasterKey
 
-/**
- * Secure token store backed by EncryptedSharedPreferences.
- * Replaces the plaintext "auth_prefs" SharedPreferences.
- *
- * All token-class values (auth_token, refresh_token) are encrypted at rest
- * using AES-256 GCM with a key stored in Android Keystore.
- */
+ 
 class AuthTokenStore(context: Context) : com.xingshi.ai.domain.BackendSessionStore {
     var onSessionCleared: (() -> Unit)? = null
     private val prefs: SharedPreferences
@@ -34,7 +28,7 @@ class AuthTokenStore(context: Context) : com.xingshi.ai.domain.BackendSessionSto
         migrateLegacyPlaintextPrefs()
     }
 
-    // --- Token lifecycle ---
+    
 
     var authToken: String?
         get() = prefs.getString(KEY_AUTH_TOKEN, null)
@@ -44,7 +38,7 @@ class AuthTokenStore(context: Context) : com.xingshi.ai.domain.BackendSessionSto
         get() = prefs.getString(KEY_REFRESH_TOKEN, null)
         set(value) = prefs.edit().putString(KEY_REFRESH_TOKEN, value).apply()
 
-    // --- User profile (non-sensitive but bundled for convenience) ---
+    
 
     var userNickname: String?
         get() = prefs.getString(KEY_USER_NICKNAME, null)
@@ -54,7 +48,7 @@ class AuthTokenStore(context: Context) : com.xingshi.ai.domain.BackendSessionSto
         get() = prefs.getString(KEY_USER_AVATAR, null)
         set(value) = prefs.edit().putString(KEY_USER_AVATAR, value).apply()
 
-    // --- Bulk operations ---
+    
 
     @Synchronized
     override fun current(): com.xingshi.ai.domain.BackendSession? {

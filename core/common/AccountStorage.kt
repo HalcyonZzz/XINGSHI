@@ -2,7 +2,7 @@ package com.xingshi.ai.common
 
 import java.util.Base64
 
-/** Runtime partition only. Existing unbound test data is preserved outside account directories. */
+ 
 object AccountStorage {
     @Volatile var partition: String = "unbound"
         private set

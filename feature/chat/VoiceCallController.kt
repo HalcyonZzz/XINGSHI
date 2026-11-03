@@ -7,12 +7,7 @@ import com.xingshi.ai.plugins.api.TtsResult
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.withTimeoutOrNull
 
-/**
- * 单次前台语音/视频通话的轮次控制（不依赖 Android，便于可控验证）。
- *
- * 顺序固定：监听分句 → 停止采集 → STT → 原对话入口 → 正式回复 → TTS → 播放 → 再监听。
- * 播放/等待期间不采集；每次有效识别只提交一次原对话入口；挂断先撤销资格再收尾。
- */
+ 
 class VoiceCallController(
     val callId: String,
     val companionId: Long,
@@ -21,16 +16,16 @@ class VoiceCallController(
     private val synthesize: suspend (String) -> TtsResult,
     private val play: suspend (TtsResult.Success) -> Unit,
     private val submit: suspend (text: String) -> Unit,
-    /** 视频通话单轮：抓帧 + STT/Vision 并行 + 一次汇合提交；返回本轮原话与观察。 */
+     
     private val videoRound: (suspend (segment: SpeechSegment, submit: suspend (text: String, observation: String) -> Unit) -> VideoCallTurnCoordinator.Outcome)? = null,
     private val submitWithObservation: suspend (text: String, observation: String) -> Unit = { text, _ -> submit(text) },
     private val awaitReply: suspend (callId: String) -> String?,
     private val now: () -> Long = System::currentTimeMillis,
     private val maxTurns: Int = 20,
     private val maxCallMs: Long = 10 * 60 * 1000L,
-    /** 正式回复音频已交付：绑定时长到同一条已存消息。 */
+     
     private val onReplyAudio: suspend (durationMs: Long) -> Unit = {},
-    /** 真实失败原因到达通话状态，而不是只保存在 controller 内部。 */
+     
     private val onStageError: (String) -> Unit = {},
     private val onState: (State) -> Unit = {}
 ) {
@@ -98,7 +93,7 @@ class VoiceCallController(
                 val text: String
                 if (ended) break
                 if (videoRound != null) {
-                    // 视频汇合提交也必须经过挂断撤销：识别/视觉回调内挂断后零提交。
+                    
                     when (val round = videoRound(segment) { t, observation ->
                         if (!ended) submitWithObservation(t, observation)
                     }) {
@@ -129,7 +124,7 @@ class VoiceCallController(
                     }
                     if (ended) break
                     if (text.isBlank()) {
-                        // 静音/空结果不建立对话请求
+                        
                         transition(State.LISTENING)
                         continue
                     }
@@ -157,7 +152,7 @@ class VoiceCallController(
                 }
                 when (audio) {
                     is TtsResult.Success -> {
-                        // 合成回调内挂断：不得开始播放。
+                        
                         if (ended) break
                         runCatching { onReplyAudio(audio.durationMs) }
                         transition(State.PLAYING)
@@ -209,7 +204,7 @@ class VoiceCallController(
     private fun recordStartHint(): Long = startedAtHint ?: now()
 
     init {
-        // 记录起点统一在 run() 里取一次；这里仅提供 finish 的兜底
+        
         startedAtHint = now()
     }
 

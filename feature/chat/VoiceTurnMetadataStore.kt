@@ -3,10 +3,7 @@ package com.xingshi.ai.feature.chat
 import android.content.Context
 import java.util.Base64
 
-/**
- * 语音/视频轮次的公共元数据持久化（独立来源、采集时点、观察、真实时长）。
- * 不拼进对方原话，也不改动既有 Room schema；进程结束后仍可按消息 id 或 call_id 取回。
- */
+ 
 object VoiceTurnMetadataStore {
 
     private const val PREFS = "voice_turn_metadata"
@@ -40,7 +37,7 @@ object VoiceTurnMetadataStore {
         val editor = preferences.edit()
         if (messageId > 0L) editor.putString(MESSAGE_PREFIX + messageId, value)
         if (callId.isNotBlank()) {
-            // 同一通话每轮独立键：重开页面/重启后仍按顺序取回原转写与观察。
+            
             val index = preferences.getInt("count:" + callId, 0)
             editor.putString(CALL_PREFIX + callId + ":" + index, value)
             editor.putInt("count:" + callId, index + 1)

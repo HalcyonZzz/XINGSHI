@@ -78,9 +78,9 @@ fun ProfileScreen(
     onSettingsClick: () -> Unit,
     onPluginManageClick: () -> Unit,
     onThemeManageClick: () -> Unit,
-    // 总设置
+    
     onGeneralSettingsClick: () -> Unit,
-    // 关于
+    
     onAboutClick: () -> Unit,
     viewModel: ProfileViewModel = viewModel()
 ) {
@@ -198,7 +198,7 @@ private fun ProfileScreenContent(
     ) {
         Spacer(modifier = Modifier.height(8.dp))
 
-        // 顶部用户信息区域
+        
         AnimatedVisibility(
             visible = isVisible,
             enter = fadeIn(tween(400)) + slideInVertically(tween(400)) { it / 4 }
@@ -351,7 +351,7 @@ private fun ProfileScreenContent(
 
         Spacer(modifier = Modifier.height(12.dp))
 
-        // === 第六组：关于 ===
+        
         SolidMenuGroup(
             items = listOf(
                 MenuItemData(Icons.Filled.Info, themeText("about_app"), themeText("about_app_desc"), onAboutClick)
@@ -367,9 +367,9 @@ private fun ProfileScreenContent(
 
 }
 
-// ============================================================================
-// 通用菜单组件
-// ============================================================================
+
+
+
 
 internal data class MenuItemData(
     val icon: ImageVector,

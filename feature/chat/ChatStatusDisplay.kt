@@ -1,11 +1,6 @@
 package com.xingshi.ai.feature.chat
 
-/**
- * 后端聊天阶段文案的稳定 key。
- *
- * 消费方（后台消费者/ViewModel）只传递 key，不拼最终中文；组合式页面用 themeText(key)
- * 走主题文案回退链，切换语言后随主题状态重渲染。
- */
+ 
 object ChatStatusDisplay {
     const val NETWORK_UNREACHABLE = "ui_chat_status_network_unreachable"
     const val NETWORK_UNCONFIRMED = "ui_chat_status_network_unconfirmed"

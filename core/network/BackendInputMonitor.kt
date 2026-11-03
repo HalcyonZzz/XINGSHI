@@ -3,8 +3,9 @@ package com.xingshi.ai.network
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.booleanOrNull
 import kotlinx.serialization.json.jsonPrimitive
+import java.time.Instant
 
-/** Bounded failure presentation frozen by the backend; the phone never classifies provider failures itself. */
+ 
 data class BackendChatFailure(val code: String = "", val category: String = "", val retryable: Boolean = false,
     val reason: String = "", val nextAction: String = "NONE")
 
@@ -12,11 +13,10 @@ data class BackendInputProgress(val humanMessageId: String? = null, val generati
     val state: String = "PENDING", val error: String? = null, val nextAction: String = "WAIT",
     val failure: BackendChatFailure? = null, val stage: String = "")
 
-/**
- * An accepted input is only read back through its original client identity.
- * A POST with unchanged identity/content is allowed once, only after the read proves the input absent.
- */
+ 
 class BackendInputMonitor(private val http: BackendHttpClient) {
+    fun occurredAt(epochMillis: Long): String = Instant.ofEpochMilli(epochMillis).toString()
+
     fun needsAcceptance(progress: BackendInputProgress) = progress.state == "PENDING" && progress.humanMessageId == null
 
     suspend fun advance(chatPath: String, original: JsonObject, progress: BackendInputProgress): BackendInputProgress {
@@ -25,12 +25,12 @@ class BackendInputMonitor(private val http: BackendHttpClient) {
         if (byClient != null) return parse(byClient)
         val byHuman = progress.humanMessageId?.takeIf { it.isNotBlank() }?.let { read(chatPath, "human_message_id", it) }
         if (byHuman != null) return parse(byHuman)
-        // The acceptance identity is already confirmed: never send a second request, only keep reading.
+        
         check(progress.humanMessageId == null) { "已受理输入状态暂不可读取，稍后重试" }
         return confirm(chatPath, original)
     }
 
-    /** Null means the backend positively reports that this input is absent; other failures abort the read. */
+     
     private suspend fun read(chatPath: String, key: String, value: String): JsonObject? = try {
         http.json("GET", "$chatPath/messages/status?$key=${pathSegment(value)}")
     } catch (missing: BackendHttpException) {
@@ -52,7 +52,7 @@ class BackendInputMonitor(private val http: BackendHttpClient) {
             state = when (remote) {
                 "COMPLETED" -> "COMPLETED"
                 "FAILED" -> "FAILED"
-                // A recorded unknown submission is terminal: stop automatic verification, keep the audit fact.
+                
                 "UNKNOWN" -> if (failure != null) "FAILED" else "UNKNOWN"
                 else -> "ACCEPTED"
             },

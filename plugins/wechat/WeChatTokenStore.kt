@@ -21,11 +21,7 @@ data class A0(
     val accountId: String = "default"
 )
 
-/**
- * 插件持久化：必须跨插件类加载器安全。
- * DataStore 的活跃实例无法随插件重载而关闭，重载后会因同一文件出现两个实例而崩溃；
- * 这里改用平台 SharedPreferences（进程级单例，与类加载器无关）。
- */
+ 
 class WeChatTokenStore(context: Context) {
 
     private val prefs: SharedPreferences =
@@ -47,7 +43,7 @@ class WeChatTokenStore(context: Context) {
         bump()
     }
 
-    // ==================== Account (encrypted) ====================
+    
 
     val accountFlow: Flow<A0?> = observe {
         secureStore.getAccountJson()?.let { json.decodeFromString(it) }
@@ -61,9 +57,9 @@ class WeChatTokenStore(context: Context) {
         bump()
     }
 
-    /** 卸载清理：只清本插件自己的登录材料、令牌与映射，不触碰宿主聊天/附件。 */
+     
     fun clearAll() {
-        // 先清平台可见的映射/设置，再清加密凭据；后者失败也不能让前者残留
+        
         prefs.edit().clear().apply()
         bump()
         runCatching { secureStore.clearAll() }
@@ -75,7 +71,7 @@ class WeChatTokenStore(context: Context) {
         writePrefs { it.remove(KEY_CURSOR) }
     }
 
-    // ==================== Auto Reply ====================
+    
 
     val autoReplyFlow: Flow<Boolean> = observe { prefs.getBoolean(KEY_AUTO_REPLY, true) }
 
@@ -83,7 +79,7 @@ class WeChatTokenStore(context: Context) {
 
     suspend fun setAutoReply(enabled: Boolean): Unit = writePrefs { it.putBoolean(KEY_AUTO_REPLY, enabled) }
 
-    // ==================== Notify Enabled ====================
+    
 
     val notifyEnabledFlow: Flow<Boolean> = observe { prefs.getBoolean(KEY_NOTIFY_ENABLED, true) }
 
@@ -91,7 +87,7 @@ class WeChatTokenStore(context: Context) {
 
     suspend fun setNotifyEnabled(enabled: Boolean): Unit = writePrefs { it.putBoolean(KEY_NOTIFY_ENABLED, enabled) }
 
-    // ==================== Forward Enabled ====================
+    
 
     val forwardEnabledFlow: Flow<Boolean> = observe { prefs.getBoolean(KEY_FORWARD_ENABLED, true) }
 
@@ -99,7 +95,7 @@ class WeChatTokenStore(context: Context) {
 
     suspend fun setForwardEnabled(enabled: Boolean): Unit = writePrefs { it.putBoolean(KEY_FORWARD_ENABLED, enabled) }
 
-    // ==================== Default Companion ====================
+    
 
     val defaultCompanionIdFlow: Flow<Long?> = observe {
         if (prefs.contains(KEY_DEFAULT_COMPANION_ID)) prefs.getLong(KEY_DEFAULT_COMPANION_ID, 0L) else null
@@ -112,7 +108,7 @@ class WeChatTokenStore(context: Context) {
         else editor.remove(KEY_DEFAULT_COMPANION_ID)
     }
 
-    // ==================== Custom Bot Name ====================
+    
 
     val customBotNameFlow: Flow<String?> = observe { prefs.getString(KEY_CUSTOM_BOT_NAME, null) }
 
@@ -123,7 +119,7 @@ class WeChatTokenStore(context: Context) {
         else editor.remove(KEY_CUSTOM_BOT_NAME)
     }
 
-    // ==================== User -> Companion Mapping ====================
+    
 
     private fun readUserCompanionMap(): Map<String, Long> {
         val raw = prefs.getString(KEY_USER_COMPANION_MAP, null) ?: return emptyMap()
@@ -159,8 +155,8 @@ class WeChatTokenStore(context: Context) {
         return readUserCompanionMap().filter { it.value == companionId }.keys.toList()
     }
 
-    // ==================== Context Tokens (encrypted) ====================
-    // Key format: "accountId:userId" -> contextToken
+    
+    
 
     private suspend fun getContextTokens(): Map<String, String> =
         secureStore.getContextTokensJson()?.let {
@@ -188,7 +184,7 @@ class WeChatTokenStore(context: Context) {
             .mapKeys { (key, _) -> key.removePrefix(prefix) }
     }
 
-    // ==================== getUpdates Cursor ====================
+    
 
     val cursorFlow: Flow<String> = observe { prefs.getString(KEY_CURSOR, "").orEmpty() }
 
@@ -196,7 +192,7 @@ class WeChatTokenStore(context: Context) {
 
     suspend fun saveCursor(cursor: String): Unit = writePrefs { it.putString(KEY_CURSOR, cursor) }
 
-    // ==================== Helper ====================
+    
 
     suspend fun isLoggedIn(): Boolean = getAccount() != null
 

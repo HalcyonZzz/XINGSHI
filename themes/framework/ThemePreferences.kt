@@ -3,10 +3,7 @@ package com.xingshi.ai.theme.framework
 import android.content.Context
 import com.xingshi.ai.uicommon.theme.ThemeMode
 
-/**
- * 主题、语言、显示模式与帧率偏好分别保存，切换主题不重置其他偏好。
- * 键名沿用历史值，保证升级不丢用户选择。
- */
+ 
 interface ThemePreferencesAccess {
     var selectedThemeId: String
     var language: String

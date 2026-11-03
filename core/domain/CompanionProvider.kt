@@ -1,9 +1,6 @@
 package com.xingshi.ai.domain
 
-/**
- * Provides companion metadata to features that need it.
- * Implemented by feature:companion (or app-level bridge).
- */
+ 
 interface CompanionProvider {
     suspend fun getCompanionName(id: Long): String
     suspend fun getCompanionAvatar(id: Long): String

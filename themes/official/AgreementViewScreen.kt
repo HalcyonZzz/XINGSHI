@@ -60,7 +60,7 @@ fun AgreementViewScreen(
                 state = mapOf(
                     "protected" to "true",
                     "title" to themeText("agreement_title"),
-                    // 官方正文由宿主交付，作者只重排呈现，不改写条款
+                    
                     "content" to listOf(
                         agreementPreface,
                         sec1Title, sec1Body,

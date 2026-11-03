@@ -11,7 +11,7 @@ import java.net.URLDecoder
 import java.net.URLEncoder
 import kotlinx.coroutines.flow.first
 
-/** 建群后的生效快照交接：本地入库成功再同步成员与确认进度。 */
+ 
 object GroupConversationSync {
 
     private const val PREFS = "group_conversation_sync"
@@ -61,7 +61,7 @@ object GroupConversationSync {
         prefs.edit().putStringSet(KEY_PENDING, entries.toSet()).commit()
     }
 
-    /** 建群时网关缺失/同步失败留下的责任，后续网关可用时补交。 */
+     
     suspend fun retryPending(context: Context) {
         val prefs = context.applicationContext.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
         val entries = prefs.getStringSet(KEY_PENDING, emptySet()).orEmpty().toList()
@@ -85,7 +85,7 @@ object GroupConversationSync {
                 gateway.synchronize(snapshot)
                 val boundaryPrefs = context.applicationContext.getSharedPreferences("group_sync_boundary", Context.MODE_PRIVATE)
                 val known = boundaryPrefs.getLong("group_${group.id}", 0L)
-                // 只有拿到明确完成进度才清建群责任；null/不完整保留等待下次补交。
+                
                 val progress = gateway.synchronizeDelta(group.id, known)
                 if (progress == null || !progress.complete) return@runCatching
                 if (progress.knownThroughMessageId > known) {
@@ -130,7 +130,7 @@ object GroupConversationSync {
             gateway.confirmSyncProgress(groupId, progress.knownThroughMessageId)
             clearPending(context, groupId)
         }.onFailure {
-            // 网关存在但同步/确认失败同样保留建群责任；不能只在“网关缺失”时登记。
+            
             markPending(context, snapshot)
         }
     }

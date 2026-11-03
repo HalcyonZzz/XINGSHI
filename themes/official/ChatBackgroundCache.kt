@@ -23,11 +23,11 @@ import java.util.concurrent.ConcurrentHashMap
 
 object ChatBackgroundCache {
 
-    // app 级后台作用域，用于预加载聊天背景图片（替代裸 Thread，获得协程取消与命名能力）
+    
     private val preloadScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     private val cache = ConcurrentHashMap<String, Bitmap>()
 
-    /** 负缓存：文件不存在/解码失败也记住，避免每帧重复解码；不再用 null 值写 ConcurrentHashMap。 */
+     
     private val missing = Collections.newSetFromMap(ConcurrentHashMap<String, Boolean>())
     private val maxCacheSize = 3
 
@@ -79,12 +79,12 @@ object ChatBackgroundCache {
 
     fun preload(context: Context, key: String) {
         if (!isCustomBackground(key)) return
-        // 用协程替代裸 Thread：获得结构化并发、可取消、命名线程（通过 Dispatchers.IO 复用）
+        
         preloadScope.launch { loadBitmap(context, key) }
     }
 
     fun clear() {
-        // 不清位图内容：回收可能仍在绘制的位图会导致崩溃/花屏。
+        
         cache.clear()
         missing.clear()
     }
@@ -111,10 +111,10 @@ object ChatBackgroundCache {
 @Composable
 fun rememberBackgroundBitmap(key: String): BitmapPainter? {
     val context = LocalContext.current
-    // key 变化时丢弃上一张背景，避免切换背景后继续展示旧图。
+    
     var bitmap by remember(key) { mutableStateOf(ChatBackgroundCache.getCachedBitmap(key)) }
 
-    // 如果缓存未命中，异步加载（不阻塞主线程）
+    
     LaunchedEffect(key) {
         if (bitmap == null) {
             val loaded = withContext(Dispatchers.IO) {

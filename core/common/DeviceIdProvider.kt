@@ -4,18 +4,11 @@ import android.content.Context
 import android.os.Build
 import java.security.MessageDigest
 
-/**
- * Device ID provider with hardware binding.
- *
- * Derives device ID from hardware identifiers (not random UUID):
- *   android_id + Build.SERIAL + ro.build.fingerprint → SHA-256
- * Falls back to android_id only if Build.SERIAL unavailable.
- * Cached in SharedPreferences, regenerated if tampered.
- */
+ 
 object DeviceIdProvider {
     private const val PREFS_NAME = "xingshi_secure"
     private const val KEY_DEVICE_ID = "device_id"
-    private const val KEY_DEVICE_HASH = "device_hash"  // to detect tampering
+    private const val KEY_DEVICE_HASH = "device_hash"  
 
     @Volatile
     private var cachedDeviceId: String? = null
@@ -27,17 +20,17 @@ object DeviceIdProvider {
         val stored = prefs.getString(KEY_DEVICE_ID, null)
         val storedHash = prefs.getString(KEY_DEVICE_HASH, null)
 
-        // Compute hardware-derived ID
+        
         val hardwareId = deriveHardwareId(context)
         val hardwareHash = sha256(hardwareId)
 
         if (stored != null && storedHash != null && storedHash == hardwareHash) {
-            // Stored ID matches current hardware → valid
+            
             cachedDeviceId = stored
             return stored
         }
 
-        // Either first run or hardware changed → regenerate
+        
         val newId = "ly_" + hardwareHash.take(16)
         prefs.edit()
             .putString(KEY_DEVICE_ID, newId)

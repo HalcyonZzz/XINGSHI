@@ -8,10 +8,10 @@ import java.io.InputStreamReader
 object HardwareInfo {
 
     enum class Tier {
-        LOW,      // 入门芯片，关闭所有特效
-        MEDIUM,   // 中端芯片，特效减半
-        HIGH,     // 高端芯片，全特效
-        ULTRA     // 旗舰芯片，极限特效
+        LOW,      
+        MEDIUM,   
+        HIGH,     
+        ULTRA     
     }
 
     private var _tier: Tier? = null

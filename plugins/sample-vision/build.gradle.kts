@@ -13,8 +13,8 @@ android {
         applicationId = "com.xingshi.ai.plugins.samplevision"
         minSdk = 26
         targetSdk = 35
-        versionCode = 7
-        versionName = "1.0.7"
+        versionCode = 9
+        versionName = "1.0.9"
     }
 
     compileOptions {
@@ -69,7 +69,7 @@ dependencies {
     testImplementation(libs.androidx.compose.material3)
 }
 
-val pluginVersion = "1.0.7"
+val pluginVersion = "1.0.9"
 
 val extractPluginDex = tasks.register("extractPluginDex") {
     dependsOn("assembleDebug")
@@ -80,7 +80,7 @@ val extractPluginDex = tasks.register("extractPluginDex") {
     doLast {
         val apk = apkDir.get().asFile.listFiles()?.firstOrNull { it.extension == "apk" }
             ?: error("插件 APK 未找到")
-        // 先清空输出目录：上一次构建残留的 dex 不能混进本次插件包
+        
         val dexDir = outDir.get().asFile
         dexDir.deleteRecursively()
         dexDir.mkdirs()

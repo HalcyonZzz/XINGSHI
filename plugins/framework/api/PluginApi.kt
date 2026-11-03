@@ -8,13 +8,13 @@ interface XingShiPlugin {
     fun inputActions(): List<PluginInputAction> = emptyList()
     fun acceptsSentImages(): Boolean = false
 
-    /** 插件是否需要宿主提供视觉模型；与 acceptsSentImages()（是否自动接收发送的图片）无关 */
+     
     fun requiresVisionModel(): Boolean = false
     fun chatCards(): List<PluginChatCard> = emptyList()
     fun page(): PluginPageContent? = null
     fun settingsPage(): PluginPageContent? = null
 
-    /** 可选聊天通道能力；一次性工具插件保持默认 null。 */
+     
     fun channel(): XingShiChannel? = null
     suspend fun run(request: PluginRequest, runtime: PluginRuntime): PluginReport
     fun cleanup() {}
@@ -99,7 +99,7 @@ class PluginPageContext(
     val cancel: () -> Unit,
     val report: PluginReport?,
     val actionId: String? = null,
-    /** 插件页面内导航（如绑定/设置互跳）；由宿主主题映射到实际路由。 */
+     
     val navigate: (route: String) -> Unit = {}
 )
 

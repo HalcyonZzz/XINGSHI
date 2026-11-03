@@ -148,7 +148,7 @@ fun GroupChatScreen(
     val mentions by viewModel.mentions.collectAsState()
     val deliveryIssue by viewModel.deliveryIssue.collectAsState()
     val deliveryRetryAvailable by viewModel.deliveryRetryAvailable.collectAsState()
-    // 业务通知由外层统一收集：作者整页绘制也能拿到真实结果。
+    
     var uiNotice by remember { mutableStateOf<String?>(null) }
     LaunchedEffect(viewModel) {
         viewModel.notices.collect { uiNotice = it }
@@ -174,7 +174,7 @@ fun GroupChatScreen(
                 items = messages.map { message ->
                     ThemePageItem(
                         id = message.id.toString(),
-                        // 原业务规则：本人消息 companionId=-1，其余为各助理成员
+                        
                         kind = if (message.companionId == -1L) "user" else "assistant",
                         title = message.content,
                         subtitle = if (message.companionId == -1L) "me"
@@ -337,8 +337,8 @@ private fun GroupChatScreenContent(
 
     fun handleAlbumClick() {
         showExtensionPanel = false
-        // GetContent 走系统文档选择器，不需要读媒体权限；旧逻辑在无权限时只弹提示，
-        // 又从不申请，形成权限死路。这里直接打开选择器。
+        
+        
         imagePickerLauncher.launch("image/*")
     }
 
@@ -371,7 +371,7 @@ private fun GroupChatScreenContent(
         }
     }
 
-    // ====== 关键优化：导航动画完成后再渲染消息列表 ======
+    
     var messagesReady by remember { mutableStateOf(false) }
     LaunchedEffect(Unit) {
         delay(200)
@@ -401,7 +401,7 @@ private fun GroupChatScreenContent(
         }
     }
 
-    // Background: global > default
+    
     val defaultBgColor = MaterialTheme.colorScheme.background
     var targetBgColor by remember { mutableStateOf(defaultBgColor) }
     var chatBgGradient by remember { mutableStateOf<Brush?>(null) }
@@ -447,7 +447,7 @@ private fun GroupChatScreenContent(
                 .zIndex(1f)
         )
 
-        // Background layer
+        
         if (isCustomBg && customBgPainter != null) {
             Image(
                 painter = customBgPainter,
@@ -457,7 +457,7 @@ private fun GroupChatScreenContent(
             )
         }
 
-        // Main content
+        
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -468,7 +468,7 @@ private fun GroupChatScreenContent(
                     else Modifier.background(backgroundColor)
                 )
         ) {
-            // Messages list
+            
             if (messagesReady) {
                 LazyColumn(
                     state = listState,
@@ -479,7 +479,7 @@ private fun GroupChatScreenContent(
                         .pointerInput(Unit) { detectTapGestures { keyboardController?.hide() } },
                     contentPadding = PaddingValues(
                         start = 12.dp, end = 12.dp,
-                        top = 120.dp, // Space for floating top bar
+                        top = 120.dp, 
                         bottom = 8.dp
                     ),
                     verticalArrangement = Arrangement.spacedBy(6.dp)
@@ -497,7 +497,7 @@ private fun GroupChatScreenContent(
                 Box(modifier = Modifier.weight(1f).fillMaxWidth())
             }
 
-            // Input bar at bottom
+            
             var showMentionPicker by remember { mutableStateOf(false) }
             var inputText by remember { mutableStateOf("") }
 
@@ -572,7 +572,7 @@ private fun GroupChatScreenContent(
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
-                        // 加号按钮
+                        
                         IconButton(
                             onClick = {
                                 showExtensionPanel = !showExtensionPanel
@@ -589,7 +589,7 @@ private fun GroupChatScreenContent(
                             )
                         }
 
-                        // @艾特按钮
+                        
                         IconButton(
                             onClick = { showMentionPicker = !showMentionPicker },
                             modifier = Modifier.size(36.dp)
@@ -602,7 +602,7 @@ private fun GroupChatScreenContent(
                             )
                         }
 
-                        // 输入框
+                        
                         Box(
                             modifier = Modifier.weight(1f).height(40.dp)
                                 .clip(RoundedCornerShape(21.dp))
@@ -643,7 +643,7 @@ private fun GroupChatScreenContent(
                             )
                         }
 
-                        // 发送按钮
+                        
                         val canSend = inputText.isNotBlank()
                         Box(
                             modifier = Modifier.size(40.dp).clip(CircleShape)
@@ -671,7 +671,7 @@ private fun GroupChatScreenContent(
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
 
-                // 角色选择器弹窗
+                
                 AnimatedVisibility(
                     visible = showMentionPicker && companions.isNotEmpty(),
                     enter = androidx.compose.animation.expandVertically(animationSpec = tween(200)) + fadeIn(tween(200)),
@@ -718,7 +718,7 @@ private fun GroupChatScreenContent(
                                             .padding(horizontal = 14.dp, vertical = 8.dp),
                                         verticalAlignment = Alignment.CenterVertically
                                     ) {
-                                        // 角色头像
+                                        
                                         Box(
                                             modifier = Modifier
                                                 .size(24.dp)
@@ -757,7 +757,7 @@ private fun GroupChatScreenContent(
             }
         }
 
-        // Floating top bar - overlay
+        
         Box(
             modifier = Modifier
                 .fillMaxWidth()
@@ -786,7 +786,7 @@ private fun GroupChatScreenContent(
 
                 Box(modifier = Modifier.weight(1f), contentAlignment = Alignment.Center) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        // 群头像
+                        
                         Box(
                             modifier = Modifier
                                 .size(24.dp)
@@ -822,7 +822,7 @@ private fun GroupChatScreenContent(
                     }
                 }
 
-                // 群详情按钮
+                
                 IconButton(
                     onClick = { onNavigateToDetail(groupId) },
                     modifier = Modifier.size(32.dp)

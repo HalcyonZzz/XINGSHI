@@ -27,7 +27,7 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 
-/** QQ 机器人聊天通道插件。 */
+ 
 class QQBotPlugin : XingShiPlugin {
     override val id: String = "qqbot"
     override val name: String = "QQ 机器人"
@@ -43,7 +43,7 @@ class QQBotPlugin : XingShiPlugin {
     override suspend fun run(request: PluginRequest, runtime: PluginRuntime): PluginReport =
         PluginReport.Failure("QQ 机器人是聊天通道插件，不提供一次性工具执行")
 
-    /** 仅卸载时调用：清除本插件登录材料、令牌与联系人映射，宿主聊天原文/附件不动。 */
+     
     override fun cleanup() {
         val ctx = channel?.appContext ?: return
         QQBotServiceLocator.tokenStore(ctx).clearAll()
@@ -64,10 +64,7 @@ private class QQBotChannel : XingShiChannel {
     private var routeJob: Job? = null
     private var started = false
     private var currentAccountId: String = ""
-    /**
-     * 按完整原请求（平台消息 ID）保存事件：A 的回复不能取到 B 的事件，同联系人也不串消息。
-     * 入站登记先于接受、回复线程读取，必须并发安全。
-     */
+     
     private val eventsByRequest = java.util.concurrent.ConcurrentHashMap<String, QQInboundEvent>()
 
     override suspend fun start(host: ChannelHost) {
@@ -86,7 +83,7 @@ private class QQBotChannel : XingShiChannel {
         val seen = LinkedHashSet<String>()
         val seenLock = Any()
 
-        // 账号状态驱动连接：首次安装未绑定等待配置，绑定/退出重登都不依赖重启应用
+        
         statusJob = host.scope.launch {
             repo.connectionState.collect { state ->
                 val status = when (state) {
@@ -103,7 +100,7 @@ private class QQBotChannel : XingShiChannel {
             tokenStore.accountFlow.collect { account ->
                 val nextAccountId = account?.appId.orEmpty()
                 if (nextAccountId != currentAccountId) {
-                    // 退出/换账号：先撤销旧账号尚未回复的路由与旧事件，旧请求不能由新账号发起平台发送
+                    
                     host.revokeReplyRoutes(currentAccountId.takeIf { it.isNotBlank() })
                     eventsByRequest.clear()
                     currentAccountId = nextAccountId
@@ -119,7 +116,7 @@ private class QQBotChannel : XingShiChannel {
         }
         host.scope.launch {
             repo.incomingEvents.collect { event ->
-                // 关闭自动回复时只保留独立通知设置，不向宿主对话入口提交
+                
                 if (!tokenStore.getAutoReply()) return@collect
                 val key = when (event) {
                     is QQInboundEvent.C2CMessage -> event.userOpenid
@@ -159,8 +156,8 @@ private class QQBotChannel : XingShiChannel {
                 val accountId = currentAccountId
                 if (accountId.isBlank()) return@collect
                 val route = QQReplySender.capture(accountId, event)
-                // 原事件必须在 acceptInbound 之前就绪：宿主接受链路内即可入队并触达回复，
-                // 晚于返回才登记会让快速回复命中「缺少原请求事件」。
+                
+                
                 if (platformId.isNotBlank()) {
                     eventsByRequest[platformId] = event
                 }
@@ -180,7 +177,7 @@ private class QQBotChannel : XingShiChannel {
                         )
                     )
                 } catch (e: Throwable) {
-                    // 拒绝/异常/取消都不留下本次登记，下一次同 id 事件重新登记
+                    
                     if (platformId.isNotBlank()) eventsByRequest.remove(platformId)
                     throw e
                 }

@@ -7,9 +7,7 @@ import androidx.compose.ui.graphics.toArgb
 import androidx.core.view.WindowCompat
 import com.xingshi.ai.theme.framework.ThemeRuntime
 
-/**
- * 系统栏控制器 — 宿主接线：颜色与深浅模式统一从主题框架读取，不在宿主写死主题色。
- */
+ 
 object SystemBarController {
 
     fun applySystemBars(activity: Activity) {
@@ -32,7 +30,7 @@ object SystemBarController {
         }
     }
 
-    /** 语言/深浅模式应用由主题框架负责；此处仅保留兼容入口。 */
+     
     fun applyBaseContextLocale(base: android.content.Context): android.content.Context =
         ThemeRuntime.applyBaseContextLocale(base)
 

@@ -14,7 +14,7 @@ object ContentFilter {
         val level: ViolationLevel,
         val reason: String,
         val matchedKeywords: List<String>,
-        /** 原始分数（仅向量层提供），供特征提取直接读取，避免先格式化再解析。 */
+         
         val score: Float? = null
     )
 
@@ -23,41 +23,34 @@ object ContentFilter {
     @Volatile
     private var initialized = false
 
-    /**
-     * 初始化 ContentFilter 内置关键词。
-      * 优先从 assets/content_filter_keywords.json 加载，加载失败则使用硬编码回退。
-      */
+     
      fun initialize(context: android.content.Context) {
-        // 在锁外加载 asset，避免与 checkInput() → getCompiledPatterns() 死锁
-        // initialize() 在 IO 线程运行，checkInput() 在 Main 线程运行
-        // 两者共享 synchronized(this)，若 I/O 在锁内，Main 线程会无限阻塞
+        
+        
+        
         val loaded: Map<ViolationLevel, Pair<Array<String>, Set<String>>>? = run {
             synchronized(this) {
                 if (initialized) return
-                fallbackKeywords  // null → need to load; non-null → someone else loaded
+                fallbackKeywords  
             }
-            // Load asset WITHOUT holding the lock
+            
             loadFromAsset(context) ?: buildKeywords()
         }
         synchronized(this) {
-            if (initialized) return  // another thread may have beaten us
+            if (initialized) return  
             fallbackKeywords = loaded
             initialized = true
-            // 关键词来源在初始化时才落定：清掉此前主线程用回退词表编译/构建的缓存与 AC。
+            
             compiledPatterns = null
             acInitializedOverride = null
             NativeSafetyFilter.destroy()
         }
     }
 
-    /**
-     * 预热原生AC自动机（同步阻塞）。
-     * 必须在 initialize() 之后调用，确保首次消息检查不会因JNI懒初始化而死锁。
-     * @return true 表示预热成功，false 表示原生层不可用（将回退到Java正则）
-     */
+     
     fun warmUpNativeAc(): Boolean {
         return try {
-            // 触发 acInitialized 懒加载 getter → NativeSafetyFilter.initAc()
+            
             @Suppress("UNUSED_VARIABLE") val ready = acInitialized
             Log.i(TAG, "Native AC warm-up complete")
             true
@@ -70,7 +63,7 @@ object ContentFilter {
         }
     }
 
-     /** Release heavy resources (AC automaton, classifier). Call from Application.onTerminate. */
+      
     fun destroy() {
         synchronized(this) {
             NativeSafetyFilter.destroy()
@@ -91,7 +84,7 @@ object ContentFilter {
      private val keywords: Map<ViolationLevel, Pair<Array<String>, Set<String>>>
          get() = injectedKeywords ?: fallbackKeywords ?: buildKeywords()
 
-     /** 预编译正则，每次关键词加载后重建 */
+      
      @Volatile
      private var compiledPatterns: Map<ViolationLevel, List<java.util.regex.Pattern>>? = null
 
@@ -114,11 +107,7 @@ object ContentFilter {
          }
      }
 
-     /**
-      * 从 assets/content_filter_keywords.json 加载加密关键词。
-      * 格式: { "EXTREME": ["hex1", "hex2", ...], "CRITICAL": [...], ... }
-      * 各 hex 值通过 d() 解密为明文关键词。
-      */
+      
      private fun loadFromAsset(context: android.content.Context): Map<ViolationLevel, Pair<Array<String>, Set<String>>>? {
          return runCatching {
              val json = EncryptedAssetLoader.loadString(context, "content_filter_keywords.json")
@@ -133,8 +122,8 @@ object ContentFilter {
                  }
                  if (decrypted.isEmpty()) continue
 
-                 // 资产是「正则模式前缀 + 关键词后缀」，但不按数量对半分：
-                 // 找到第一条纯关键词的位置作为边界，数量变化时也不会把模式/关键词互换。
+                 
+                 
                  val mid = decrypted.size / 2
                  val detected = decrypted.indexOfFirst { !looksLikeRegexPattern(it) }
                      .let { if (it < 0) decrypted.size else it }
@@ -162,7 +151,7 @@ object ContentFilter {
          }
      }
 
-     /** 正则模式形如 "(?i)..." / "(...)"；关键词是裸词，不以分组符号开头。 */
+      
      private fun looksLikeRegexPattern(value: String): Boolean {
          val trimmed = value.trim()
          return trimmed.startsWith("(?") || trimmed.startsWith("(") ||
@@ -175,7 +164,7 @@ object ContentFilter {
         for ((levelStr, items) in data) {
             val level = runCatching { ViolationLevel.valueOf(levelStr) }.getOrNull()
             if (level == null) {
-                // 等级来源只认 ViolationLevel：脏数据显式丢弃并记录，避免静默改变拦截等级。
+                
                 Log.w(TAG, "忽略未知违规等级: $levelStr")
                 continue
             }
@@ -187,8 +176,8 @@ object ContentFilter {
         }
         synchronized(this) {
             injectedKeywords = result
-            compiledPatterns = null       // 失效正则缓存
-            acInitializedOverride = null  // 失效 AC 缓存，下次 checkKeywords 时重建
+            compiledPatterns = null       
+            acInitializedOverride = null  
         }
         val totalCount = data.values.sumOf { it.size }
         Log.i(TAG, "关键词注入完成，共 $totalCount 条，覆盖 ${result.size} 个等级")
@@ -228,39 +217,30 @@ object ContentFilter {
        if (text.isBlank()) return CheckResult(false, ViolationLevel.NONE, "", emptyList())
        val result = checkBlocking(text)
         if (!result.isViolating) return result
-        // 阈值从 CRITICAL 降低到 HIGH，拦截 HIGH 及以上级别的违规
+        
         return when {
             result.level >= ViolationLevel.HIGH -> result
             else -> CheckResult(false, ViolationLevel.NONE, "", emptyList())
         }
     }
 
-    /**
-     * 完整内容检查（不降级）— 供 ContentSafetyVerifier.bootstrap() 使用。
-     * 返回所有级别的违规结果，不做 CRITICAL+ 过滤。
-     */
+     
     fun checkFull(text: String): CheckResult {
         if (text.isBlank()) return CheckResult(false, ViolationLevel.NONE, "", emptyList())
         return checkBlocking(text)
     }
 
-    /**
-     * 同步版本（不含语义检测）。用于 UI 线程快速预检。
-     *
-     * 所有层（L1a/L1b 关键词、L2 语义检测、L2 预处理检测）均执行，
-     * 不短路返回，确保贝叶斯分类器能从真实拦截场景收集训练数据。
-     * 最终取最严重的违规结果。
-     */
+     
     fun checkBlocking(text: String): CheckResult {
         if (text.isBlank()) return CheckResult(false, ViolationLevel.NONE, "", emptyList())
 
         val results = mutableListOf<CheckResult>()
 
-        // L1a + L1b: 关键词检查
+        
         val keywordResult = checkKeywords(text)
         results.add(keywordResult)
 
-        // L2: 预处理检测（内部已包含对原文的语义检测，无需重复调用 detectSemanticViolations）
+        
         val preprocessedResults = SemanticDetector.preprocessAndDetect(text)
         if (preprocessedResults.isNotEmpty()) {
             val highestViolation = preprocessedResults.maxByOrNull { it.level.ordinal }
@@ -270,23 +250,23 @@ object ContentFilter {
             }
         }
 
-        // 返回最严重的违规结果
+        
         return results.filter { it.isViolating }.maxByOrNull { it.level.ordinal }
             ?: CheckResult(false, ViolationLevel.NONE, "", emptyList())
     }
 
-    // ── AC 自动机 (Native C++，可重建) ──
+    
     @Volatile
     private var acInitializedOverride: Boolean? = null
 
     private val acInitialized: Boolean
         get() {
             if (acInitializedOverride == true) return true
-            // 在锁外构建关键词映射并调用 JNI，避免与 getCompiledPatterns() 死锁
-            // warmUpNativeAc() 在 IO 线程调用本 getter → initAc() 是 JNI 可能慢 → 持锁阻塞 Main 线程
+            
+            
             val needed = synchronized(this) {
                 if (acInitializedOverride == true) return true
-                acInitializedOverride == null  // true = nobody started yet
+                acInitializedOverride == null  
             }
             if (needed) {
                 val kwMap = mutableMapOf<Int, List<String>>()
@@ -296,17 +276,17 @@ object ContentFilter {
                 }
                 NativeSafetyFilter.initAc(kwMap)
                 Log.i(TAG, "Native AC 自动机已构建: ${kwMap.values.sumOf { it.size }} 关键词")
-                // 仍可能与其他线程竞争，但 initAc() 是幂等的
+                
                 acInitializedOverride = true
             }
             return true
         }
 
     private fun checkKeywords(text: String): CheckResult {
-        // AC 与正则都必须参与判定并取最高等级：任一低等级命中都不能遮蔽其它高等级命中。
+        
         val hits = mutableListOf<CheckResult>()
 
-        // AC 构建后必须真正查询：关键词型词条（含中文关键词）只进入 AC，正则半区不包含它们。
+        
         val acMatches = runCatching {
             if (acInitialized) NativeSafetyFilter.searchAc(text) else emptyList()
         }.getOrDefault(emptyList())
@@ -319,7 +299,7 @@ object ContentFilter {
             }
         }
 
-        // 正则模式仍走 Java 路径（功能等价，且不依赖 JNI 可用性）
+        
         val compiled = getCompiledPatterns()
         val levels = arrayOf(ViolationLevel.EXTREME, ViolationLevel.CRITICAL, ViolationLevel.SEVERE,
                              ViolationLevel.HIGH, ViolationLevel.MEDIUM, ViolationLevel.LOW)
@@ -372,18 +352,18 @@ object ContentFilter {
         }
     }
 
-    // ── 词向量语义层 (随机索引, 256维) ──
+    
 
     @Volatile
     private var vectorLib: com.xingshi.ai.common.embedding.VectorLibrary? = null
 
-    /** 注入向量库（启动时从 assets 加载） */
+     
     fun setVectorLibrary(lib: com.xingshi.ai.common.embedding.VectorLibrary?) {
         vectorLib = lib
         if (lib != null) Log.i(TAG, "词向量库已激活")
     }
 
-    /** 向量语义检查（用于输入+输出双重验证） */
+     
     fun checkVector(text: String): CheckResult? {
         val lib = vectorLib ?: return null
         val match = lib.check(text) ?: return null
@@ -397,7 +377,7 @@ object ContentFilter {
         )
     }
 
-    // ── L3 语义模型（可选分类器钩子，默认为空即不启用） ──
+    
 
     @Volatile
     private var safetyClassifier: SafetyClassifier? = null
@@ -407,7 +387,7 @@ object ContentFilter {
         if (classifier != null) Log.i(TAG, "L3语义分类器已激活")
     }
 
-    /** L3 异步语义分类（供协程调用） */
+     
     suspend fun classifyAsync(text: String): ViolationLevel {
         val c = safetyClassifier ?: return ViolationLevel.NONE
         return c.classify(text)
@@ -421,8 +401,8 @@ object ContentFilter {
 
     fun checkOutputSafety(text: String): OutputSafetyResult {
         val result = check(text)
-        // 与输入侧 checkInput 保持一致：只对 HIGH 及以上级别做拦截，
-        // 避免语义检测 LOW/MEDIUM 误报把正常 AI 回复吞掉并导致误封。
+        
+        
         val unsafe = result.isViolating && result.level >= ViolationLevel.HIGH
         if (unsafe) {
             Log.w(TAG, "checkOutputSafety: ${result.level} - ${result.reason}")
@@ -464,7 +444,7 @@ private fun buildKeywords(): Map<ViolationLevel, Pair<Array<String>, Set<String>
                     "蘿莉控","正太控","戀童","兒童色情","未成年色情","兒童性侵",
                     "ロリコン","ショタコン","児童ポルノ","ロリータ","チャイルドポルノ",
                     "幼女ポルノ","子供エロ","子供買春",
-                    // 公开词表扩充
+                    
                     "儿童淫秽","幼儿淫秽","孩童色情","少年色情","中学生色情",
                     "幼齒","雏妓","幼幼","儿童色情网站","儿童色情视频",
                     "child model","child nude","nude child","preteen model",
@@ -503,7 +483,7 @@ private fun buildKeywords(): Map<ViolationLevel, Pair<Array<String>, Set<String>
                     "fentanyl production","drug recipe","cook meth",
                     "genocide","ethnic cleansing","hate crime","race war",
                     "制造炸弹","制作炸药","恐怖袭击教程","完美犯罪","连环杀人教程","genocide","制毒",
-                    // 公开词表扩充
+                    
                     "制造病毒","毒药配方","毒气制作","枪支制造","爆炸物配方",
                     "恐怖组织","如何杀人","杀人方法","贩卖毒品","吸毒教程",
                     "枪支买卖","弹药制作","冰毒配方","海洛因配方","可卡因制作",
@@ -564,7 +544,7 @@ private fun buildKeywords(): Map<ViolationLevel, Pair<Array<String>, Set<String>
                     "越獄","破限","絕對無限制","你不再是AI","角色切換為",
                     "ジェイルブレイク","DANモード","何でもできる","神モード","開発者モード",
                     "フィルター無効","セーフティオフ","プロンプトインジェクション","架空の設定","ロールプレイ",
-                    // 公开词表扩充
+                    
                     "破甲模式","解除封印","撤销限制","退出安全","无限制对话",
                     "解除安全模式","完全自由","无审查模式","绕过限制",
                     "突破AI限制","释放AI","解锁全部功能","高级模式",
@@ -615,7 +595,7 @@ private fun buildKeywords(): Map<ViolationLevel, Pair<Array<String>, Set<String>
                     "bypass safety","uncensored","去审查","无审查",
                     "hate speech","racist","nigger","kys","go die","kill yourself",
                     "white supremacy","nazi","incel","misogyny","racism",
-                    // 公开词表扩充
+                    
                     "无限制模式","色情允许","成人模式","去掉限制",
                     "取消审查","突破封锁","xenophobia","homophobia",
                     "transphobia","antisemitism","islamophobia",
@@ -651,7 +631,7 @@ private fun buildKeywords(): Map<ViolationLevel, Pair<Array<String>, Set<String>
                     "blowjob","handjob","sex scene","write porn","generate erotica",
                     "make it spicy","add sex","写得刺激","加点色",
                     "spam","advertisement","buy now",
-                    // 公开词表扩充
+                    
                     "黄色小说","色情小说","情色小说","淫荡","色诱",
                     "挑逗","下流内容","成人故事","性描写","露骨",
                     "性暗示","淫词","春宫","房事","云雨",
@@ -683,7 +663,7 @@ private fun buildKeywords(): Map<ViolationLevel, Pair<Array<String>, Set<String>
                 setOf(
                     "hypothetically","fictional scenario","假设没有规则","理论上说",
                     "纯学术讨论","假装你是","just curious","out of curiosity",
-                    // 公开词表扩充
+                    
                     "如果没有审查","在虚构世界","只是假设",
                     "测试一下","探底线","试试看","随便问问",
                     "如果AI自由","没有限制的话","for educational purposes",

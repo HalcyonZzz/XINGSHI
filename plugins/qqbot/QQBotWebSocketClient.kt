@@ -84,7 +84,7 @@ class QQBotWebSocketClient(
     private val opHello = 10
     private val opHeartbeatAck = 11
 
-    // Intents: C2C(1<<25) | GROUP_AT_MESSAGE(1<<30) | GUILDS(1<<0) | GUILD_MESSAGES(1<<9) | DIRECT_MESSAGE(1<<12) | INTERACTION(1<<26)
+    
     private val intents = (1 shl 25) or (1 shl 30) or (1 shl 0) or (1 shl 9) or (1 shl 12) or (1 shl 26)
 
     suspend fun connect() = connectMutex.withLock {
@@ -95,7 +95,7 @@ class QQBotWebSocketClient(
         try {
             val account = tokenStore.getAccount()
                 ?: throw IllegalStateException("未配置 QQ Bot 账号")
-            // 如果重试次数较多，强制刷新 token（可能是 token 本身有问题）
+            
             val retryCount = reconnectAttempt.get()
             if (retryCount >= 3) {
                 SecureLog.w(TAG, "Reconnect attempt $retryCount, clearing token cache for fresh token")
@@ -160,9 +160,9 @@ class QQBotWebSocketClient(
             isConnecting.set(false)
             if (!isCurrentGeneration(generation)) return
             SecureLog.e(TAG, "connect failed: ${e.message}", e)
-            // connect 失败也清除 token 缓存，下次重连重新获取
+            
             apiClient.clearApiCache()
-            // 连续失败超过阈值时通知 UI
+            
             if (reconnectAttempt.get() >= 5) {
                 onConnectionStateChange?.invoke(ConnectionState.AUTH_FAILED)
             }
@@ -209,7 +209,7 @@ class QQBotWebSocketClient(
                         payload.d?.let {
                             val ready = json.decodeFromJsonElement<QQReadyData>(it)
                             sessionId = ready.sessionId
-                            // 内存已更新，异步持久化，不阻塞回调线程
+                            
                             scope.launch {
                                 sessionPersistenceMutex.withLock {
                                     if (isCurrentGeneration(generation)) tokenStore.setSessionId(ready.sessionId)
@@ -229,24 +229,24 @@ class QQBotWebSocketClient(
                 }
                 opHello -> {
                     val hello = payload.d?.let { json.decodeFromJsonElement<QQHelloData>(it) }
-                    // [PERF] 优先使用内存中的 sessionId/seq，避免在 WebSocket 回调线程 runBlocking 读 DataStore
+                    
                     val savedSessionId = sessionId
                     val savedSeq = lastSequence.get()
                     if (!savedSessionId.isNullOrBlank() && savedSeq > 0) {
                         val resumed = sendResume(savedSessionId, savedSeq, generation)
                         if (!resumed) {
-                            // Resume 失败（token 过期），sendResume 内部已降级为 Identify
-                            // 如果降级的 Identify 也失败了，触发重连
+                            
+                            
                             SecureLog.e(TAG, "Resume failed (no valid token), reconnect required")
                             reconnect()
                             return
                         }
                     } else {
-                        // sendIdentify 可能因 token 过期失败，失败后触发重连重试
+                        
                         val identified = sendIdentify(generation)
                         if (!identified) {
                             SecureLog.e(TAG, "Identify failed, will reconnect to retry")
-                            // 不设 isConnected=true，让重连逻辑接管
+                            
                             reconnect()
                             return
                         }
@@ -271,7 +271,7 @@ class QQBotWebSocketClient(
                     }
                 }
                 opHeartbeatAck -> {
-                    // ignore
+                    
                 }
                 else -> SecureLog.d(TAG, "Unhandled op: ${payload.op}")
             }
@@ -280,19 +280,16 @@ class QQBotWebSocketClient(
         }
     }
 
-    /**
-     * 发送 Identify 鉴权帧。
-     * @return true 表示成功发送，false 表示 token 不可用（需重连重试）
-     */
+     
     private fun sendIdentify(generation: Long): Boolean {
         if (!isCurrentGeneration(generation)) return false
-        // [PERF FIX] 优先使用内存缓存的 token
+        
         var token = apiClient.getCachedToken()
-        // token 过期时尝试同步刷新一次（WebSocket 回调线程，
-        // 使用 scope.launch 替代 runBlocking 避免阻塞回调线程）
+        
+        
         if (token == null) {
             SecureLog.w(TAG, "Cached token is null/expired, attempting refresh...")
-            // 无法在 WebSocket 回调中同步等待，返回 false 让重连逻辑处理
+            
             return false
         }
         if (token == null) {
@@ -319,14 +316,11 @@ class QQBotWebSocketClient(
         return true
     }
 
-    /**
-     * 发送 Resume 恢复帧。
-     * @return true 表示成功发送，false 表示 token 不可用（降级为 Identify）
-     */
+     
     private fun sendResume(sessionIdValue: String, seq: Long, generation: Long): Boolean {
         if (!isCurrentGeneration(generation)) return false
         var token = apiClient.getCachedToken()
-        // [PERF FIX] 使用 scope.launch 替代 runBlocking 避免阻塞 WebSocket 回调线程
+        
         if (token == null) {
             SecureLog.w(TAG, "Cached token is null/expired for resume, will reconnect with fresh token")
             scope.launch {
@@ -357,13 +351,10 @@ class QQBotWebSocketClient(
         return true
     }
 
-    /**
-     * 带 token 刷新的 Identify 重试，供外部在 connect() 失败后调用。
-     * 会先强制刷新 token（清除缓存），再走完整的 connect 流程。
-     */
+     
     suspend fun connectWithFreshToken() = connectMutex.withLock {
         if (isConnected.get()) return
-        // 清除旧的 token 缓存，强制重新获取
+        
         apiClient.clearApiCache()
         scope.launch {
             tokenStore.setAccessToken(null)

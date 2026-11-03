@@ -11,7 +11,7 @@ fun ApiConfig.toChatModelDraft(localId: Long = id, apiKey: String = this.apiKey)
     apiKey, temperature, maxTokens, provider.name
 )
 
-/** Blank on an existing edit retains the remote credential; a new MAIN needs its own Key. */
+ 
 fun ApiConfig.mainConfigurationIssue(allowStoredKey: Boolean = id > 0): MainChatConfigurationIssue? =
     toChatModelDraft().configurationIssue()
         ?: MainChatConfigurationIssue.KEY_REQUIRED.takeIf { apiKey.isBlank() && !allowStoredKey }

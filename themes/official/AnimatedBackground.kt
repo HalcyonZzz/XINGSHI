@@ -44,7 +44,7 @@ fun GradientOrbBackground(modifier: Modifier = Modifier) {
     val primary = MaterialTheme.colorScheme.primary
 
     Canvas(modifier = modifier.fillMaxSize()) {
-        // Background gradient: 深色/浅色变体
+        
         drawRect(
             brush = Brush.verticalGradient(
                 colors = if (isDark) {
@@ -63,7 +63,7 @@ fun GradientOrbBackground(modifier: Modifier = Modifier) {
             )
         )
 
-        // Animated orb 1
+        
         val orb1X = size.width * 0.3f + cos(orb1Offset) * size.width * 0.15f
         val orb1Y = size.height * 0.4f + sin(orb1Offset * 0.7f) * size.height * 0.1f
 
@@ -81,7 +81,7 @@ fun GradientOrbBackground(modifier: Modifier = Modifier) {
             center = Offset(orb1X, orb1Y)
         )
 
-        // Animated orb 2
+        
         val orb2X = size.width * 0.7f + cos(orb2Offset * 0.8f) * size.width * 0.12f
         val orb2Y = size.height * 0.6f + sin(orb2Offset) * size.height * 0.08f
 

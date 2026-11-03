@@ -12,14 +12,14 @@ class WeChatUserMappingManager(
         if (existingId != null && existingId > 0) {
             val companion = companionRepository.getCompanionById(existingId)
             if (companion != null) return existingId
-            // 目标角色已删除：保留失效映射作为拒绝状态，不静默改派默认角色；
-            // 只有用户显式重新映射才覆盖，连续多条消息均拒绝
+            
+            
             return null
         }
         return createDefaultMapping(wechatUserId)
     }
 
-    /** 只承接用户显式配置且仍有效的默认映射；不得擅自取第一个角色。 */
+     
     private suspend fun createDefaultMapping(wechatUserId: String): Long? {
         val defaultCompanionId = tokenStore.getDefaultCompanionId()
         if (defaultCompanionId == null || defaultCompanionId <= 0) return null

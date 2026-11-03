@@ -5,14 +5,7 @@ import android.content.SharedPreferences
 import androidx.security.crypto.EncryptedSharedPreferences
 import androidx.security.crypto.MasterKey
 
-/**
- * Secure storage for WeChat sensitive credentials.
- * Wraps EncryptedSharedPreferences (AES-256-GCM, Android Keystore key).
- *
- * Stores:
- *   - botToken: WeChat bot authentication token
- *   - contextTokens: per-user chat context tokens
- */
+ 
 internal class WeChatSecureStore(context: Context) {
     private val prefs: SharedPreferences
 
@@ -30,13 +23,13 @@ internal class WeChatSecureStore(context: Context) {
         )
     }
 
-    // --- Account (botToken is the critical secret) ---
+    
 
     fun getAccountJson(): String? = prefs.getString(KEY_ACCOUNT_JSON, null)
     fun setAccountJson(json: String) = prefs.edit().putString(KEY_ACCOUNT_JSON, json).apply()
     fun clearAccount() = prefs.edit().remove(KEY_ACCOUNT_JSON).apply()
 
-    // --- Context tokens (per-user chat session tokens) ---
+    
 
     fun getContextTokensJson(): String? = prefs.getString(KEY_CONTEXT_TOKENS_JSON, null)
     fun setContextTokensJson(json: String) = prefs.edit().putString(KEY_CONTEXT_TOKENS_JSON, json).apply()

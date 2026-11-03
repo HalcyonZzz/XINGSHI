@@ -30,13 +30,7 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 
-/**
- * 通道插件运行期：安装后仅启动仍安装的通道，重复加载不产生重复连接；
- * 卸载/更新先停旧实例再起新实例，迟到恢复不会复活已移除通道。
- *
- * 每次启动分配执行代次；停止即作废旧代次的回调资格（状态、入站、路由、出站），
- * 卸载/更新/停止不会留下能继续交接的旧实例。
- */
+ 
 object PluginChannels {
 
     private val mutex = Mutex()
@@ -63,7 +57,7 @@ object PluginChannels {
         val route: ChannelReplyRoute
     )
 
-    /** 回复路由按登记顺序排队：同一角色下多联系人/多平台交错时逐条对应，后到不覆盖先到。 */
+     
     private val routes = mutableMapOf<Long, ArrayDeque<RouteEntry>>()
 
     fun bind(app: Application, gateway: HostChannelGateway?) {
@@ -71,14 +65,14 @@ object PluginChannels {
         if (gateway != null) this.gateway = gateway
     }
 
-    /** 只补充应用上下文；服务/Receiver 重复初始化时不得抹掉 Application 已注入的入口。 */
+     
     fun bindApp(app: Application) {
         if (appRef == null) appRef = app
     }
 
     fun statusOf(pluginId: String): ChannelStatus = _statuses.value[pluginId] ?: ChannelStatus.Unbound
 
-    /** 是否仍有通道在连接或已连接：通用前台承载据此决定是否常驻。 */
+     
     fun hasActiveConnection(): Boolean = _statuses.value.values.any {
         it is ChannelStatus.Connecting || it is ChannelStatus.Connected
     }
@@ -86,20 +80,17 @@ object PluginChannels {
     private fun setStatus(pluginId: String, status: ChannelStatus) {
         _statuses.value = _statuses.value + (pluginId to status)
         val app = appRef ?: return
-        // 只在确需前台承载时启动；停止由承载服务自身按状态流判断，避免“刚拉起就停”的竞态
+        
         if (hasActiveConnection()) {
             runCatching { com.xingshi.ai.plugins.host.PluginChannelService.start(app) }
         }
     }
 
-    /**
-     * 冷启动/恢复：只启动仍安装且已加载出通道能力的插件。
-     * [force] 为本次安装/更新涉及的插件；其它已在运行的实例保持不变，避免无关安装重启通道。
-     */
+     
     suspend fun restore(force: Set<String> = emptySet()) = mutex.withLock {
         val manager = PluginFramework.manager() ?: return@withLock
         val installed = manager.installedIds()
-        // 已不存在的通道先停掉，避免卸载后复活
+        
         for ((id, entry) in running.toList()) {
             if (id !in installed) {
                 stopLocked(id)
@@ -155,7 +146,7 @@ object PluginChannels {
         )
         running[pluginId] = Running(channel, channelScope, generation, parentJob)
         SecureLog.d("PluginChannels", "channel start plugin=$pluginId generation=$generation")
-        // 连接状态由通道在确认凭据后自行上报：未绑定的通道不应拉起前台承载
+        
         try {
             channel.start(host)
         } catch (e: Exception) {
@@ -168,10 +159,10 @@ object PluginChannels {
 
     private suspend fun stopLocked(pluginId: String) {
         val entry = running.remove(pluginId) ?: return
-        // 只删除目标插件自己的路由，再删空队列：同角色下另一插件的待回复不能被误删
+        
         routes.entries.forEach { (_, queue) -> queue.removeAll { it.pluginId == pluginId } }
         routes.entries.removeAll { it.value.isEmpty() }
-        // 先撤销资格（running 已移除、scope 取消），再等待通道自身收尾
+        
         SecureLog.d("PluginChannels", "channel stop plugin=$pluginId generation=${entry.generation}")
         entry.parentJob.cancel()
         withContext(Dispatchers.IO) { runCatching { entry.channel.stop() } }
@@ -184,7 +175,7 @@ object PluginChannels {
 
     private fun bindRouteLocked(pluginId: String, generation: Long, companionId: Long, route: ChannelReplyRoute) {
         val queue = routes.getOrPut(companionId) { ArrayDeque() }
-        // 同一登记不重复入队（平台重投/页面重开不放大队列）
+        
         if (queue.any { it.pluginId == pluginId && it.generation == generation && it.route == route }) return
         queue.addLast(RouteEntry(pluginId, generation, route))
         while (queue.size > MAX_ROUTES_PER_COMPANION) queue.removeFirst()
@@ -200,7 +191,7 @@ object PluginChannels {
         routes.entries.removeAll { it.value.isEmpty() }
     }
 
-    /** 原请求精确回复：只交付该请求登记的路由，不按角色弹别的请求/别的插件的队首。 */
+     
     suspend fun deliverReply(companionId: Long, request: ChannelRequestRef, text: String): ChannelSendResult? {
         val entry: RouteEntry = mutex.withLock {
             val queue = routes[companionId] ?: return@withLock null
@@ -221,7 +212,7 @@ object PluginChannels {
         return sendAtomically(companionId, entry, text)
     }
 
-    /** Durable formal inbox handoff restores only this exact route after process restart. */
+     
     suspend fun deliverPersistedReply(companionId: Long, request: ChannelRequestRef, text: String): ChannelSendResult? {
         val entry = mutex.withLock {
             val current = running[request.pluginId] ?: return@withLock null
@@ -231,7 +222,7 @@ object PluginChannels {
         return sendAtomically(companionId, entry, text)
     }
 
-    /** Durable receipt state must precede sending; only definite non-sends may retry automatically. */
+     
     suspend fun deliverFormalReply(companionId: Long, request: ChannelRequestRef, text: String, previousState: String,
         persist: suspend (String) -> Unit): String {
         if (previousState == "DONE") return "DONE"
@@ -250,7 +241,7 @@ object PluginChannels {
         return next
     }
 
-    /** 兼容旧通道：宿主只拿到角色时按登记顺序取最早路由，无路由返回 null。 */
+     
     suspend fun deliverReply(companionId: Long, text: String): ChannelSendResult? {
         val entry: RouteEntry = mutex.withLock {
             val queue = routes[companionId] ?: return@withLock null
@@ -262,10 +253,7 @@ object PluginChannels {
         return sendAtomically(companionId, entry, text)
     }
 
-    /**
-     * 实际发送与撤销共用同一临界区：先校验本次执行代次，再把“接受发送”与平台调用放在同一互斥边界内。
-     * stop 先完成时，调度恢复后的发送会因代次失效而不再调用平台；已完成接受的发送由 stop 等待其收尾。
-     */
+     
     private suspend fun sendAtomically(
         companionId: Long,
         entry: RouteEntry,
@@ -285,7 +273,7 @@ object PluginChannels {
         }
     }
 
-    /** 本地聊天产生的回复不占外部通道路由；仅供宿主判断是否存在待回流外部回复。 */
+     
     fun hasPendingReplyRoute(companionId: Long): Boolean {
         val queue = routes[companionId]
         return queue != null && queue.isNotEmpty()
@@ -296,8 +284,8 @@ object PluginChannels {
         pluginId: String,
         generation: Long
     ): ChannelInboundResult {
-        // 原请求的回复资格必须与接受同生命周期：入站携带请求时先登记本代次路由，
-        // 宿主拒绝或接受异常时收回，避免只改测试手工登记才能回复。
+        
+        
         val companionId = inbound.companionId
         val boundRequest = inbound.request?.takeIf { it.pluginId == pluginId && companionId != null }
         if (boundRequest != null && companionId != null) {

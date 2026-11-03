@@ -5,9 +5,7 @@ import android.content.SharedPreferences
 import androidx.security.crypto.EncryptedSharedPreferences
 import androidx.security.crypto.MasterKey
 
-/**
- * 安全存储 QQ Bot 敏感凭证（AppID / ClientSecret）。
- */
+ 
 internal class QQBotSecureStore(context: Context) {
     private val prefs: SharedPreferences
 

@@ -5,11 +5,7 @@ import com.xingshi.ai.common.SecureLog
 import com.xingshi.ai.push.PushConfig
 import com.xingshi.ai.push.dispatch.PushMessageDispatcher
 
-/**
- * vivo PUSH 初始化器。
- *
- * SDK 版本：4.1.5.0（本地 aar）
- */
+ 
 object VivoPushInitializer {
 
     private const val TAG = "VivoPush"
@@ -21,13 +17,13 @@ object VivoPushInitializer {
         }
 
         try {
-            // 初始化 PushClient
+            
             val pushClientClass = Class.forName("com.vivo.push.PushClient")
             val pushClient = pushClientClass.getMethod("getInstance", android.content.Context::class.java)
                 .invoke(null, application)
             pushClientClass.getMethod("initialize").invoke(pushClient)
 
-            // 注册并获取 regId
+            
             val upsManagerClass = Class.forName("com.vivo.push.ups.VUpsManager")
             val callbackClass = Class.forName("com.vivo.push.ups.UPSRegisterCallback")
             val upsManager = upsManagerClass.getMethod("getInstance").invoke(null)

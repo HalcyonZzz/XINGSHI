@@ -36,14 +36,14 @@ fun interface PluginCatalogSource {
     suspend fun load(): List<PluginCatalogEntry>
 }
 
-/** 目录读取结果：区分「真的没有插件」与「这次刷新失败/只拿到缓存」。 */
+ 
 data class PluginCatalogResult(
     val entries: List<PluginCatalogEntry> = emptyList(),
     val cached: Boolean = false,
     val error: String? = null
 )
 
-/** 市场页面消费的目录状态：离线缓存与请求失败分别标注。 */
+ 
 data class PluginCatalogState(
     val entries: List<PluginCatalogEntry> = emptyList(),
     val loaded: Boolean = false,
@@ -52,7 +52,7 @@ data class PluginCatalogState(
     val error: String? = null
 )
 
-/** 能报告刷新状态的目录来源；普通来源只有条目，没有离线/失败信息。 */
+ 
 interface RefreshableCatalogSource : PluginCatalogSource {
     suspend fun refresh(): PluginCatalogResult
 }

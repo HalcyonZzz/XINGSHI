@@ -42,7 +42,7 @@ class WeChatViewModel(
                     account = account
                 )
                 if (account != null) {
-                    // 通道运行期由宿主统一承载，页面不直接启动后台服务
+                    
                     loadUserMappings()
                 } else {
                 }
@@ -114,7 +114,7 @@ class WeChatViewModel(
         }
     }
 
-    // ==================== QR Code Login ====================
+    
 
     fun startQrCodeLogin() {
         if (_uiState.value.isLoading) return
@@ -178,7 +178,7 @@ class WeChatViewModel(
         _uiState.value = _uiState.value.copy(showQrCode = false, qrCodeKey = null, qrCodeContent = null, isLoading = false)
     }
 
-    // ==================== Settings ====================
+    
 
     fun toggleAutoReply(enabled: Boolean) {
         viewModelScope.launch {
@@ -210,7 +210,7 @@ class WeChatViewModel(
         }
     }
 
-    // ==================== Send Message ====================
+    
 
     fun sendMessage(toUserId: String, text: String) {
         viewModelScope.launch {
@@ -221,7 +221,7 @@ class WeChatViewModel(
         }
     }
 
-    // ==================== Logout ====================
+    
 
     fun logout() {
         viewModelScope.launch {

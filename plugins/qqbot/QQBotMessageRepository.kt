@@ -51,14 +51,14 @@ class QQBotMessageRepository(
     val isLoggedInFlow = accountFlow.map { it != null }
     suspend fun isLoggedIn(): Boolean = tokenStore.isLoggedIn()
 
-    // 连接状态，供 UI 显示
+    
     private val _connectionState = MutableStateFlow(QQBotWebSocketClient.ConnectionState.DISCONNECTED)
     val connectionState: StateFlow<QQBotWebSocketClient.ConnectionState> = _connectionState.asStateFlow()
 
     private var webSocketClient: QQBotWebSocketClient? = null
     private val sendMutex = Mutex()
     private val msgSeqCounter = AtomicInteger(1)
-    // [PERF] 使用 LRU + TTL 去重，避免 size>1000 时整表清空导致重复处理
+    
     private val seenMessageIds = object : LinkedHashMap<String, Long>(128, 0.75f, true) {
         override fun removeEldestEntry(eldest: MutableMap.MutableEntry<String, Long>): Boolean {
             return size > 1000
@@ -71,7 +71,7 @@ class QQBotMessageRepository(
                 throw IllegalArgumentException("AppID 和 ClientSecret 不能为空")
             }
             tokenStore.saveAccount(QQBotAccount(appId, clientSecret, customName))
-            // 立即获取一次 token 验证凭证有效
+            
             apiClient.createAuthenticatedRestApi()
             Unit
         }
@@ -149,10 +149,10 @@ class QQBotMessageRepository(
         }
         val event = payload.d?.let { json.decodeFromJsonElement<QQMessageEvent>(it) } ?: return
 
-        // 5 分钟窗口去重（与 Hermes 一致）
+        
         synchronized(seenMessageIds) {
             val now = System.currentTimeMillis()
-            // 清理 5 分钟前的旧记录
+            
             seenMessageIds.entries.removeIf { now - it.value > 5 * 60 * 1000L }
             if (seenMessageIds.put(event.id, now) != null) return
         }
@@ -186,7 +186,7 @@ class QQBotMessageRepository(
 
     fun extractText(event: QQInboundEvent): String {
         var text = event.raw.content.orEmpty()
-        // 去掉群聊中的 @机器人 前缀
+        
         if (event is QQInboundEvent.GroupAtMessage) {
             text = text.replace(Regex("^<@!\\d+>\\s*"), "")
             text = text.replace(Regex("^@\\S+\\s*"), "")
@@ -194,7 +194,7 @@ class QQBotMessageRepository(
         return text.trim()
     }
 
-    /** 下载平台图片原件；宿主负责把它保存到目标角色聊天存储，插件不写库。 */
+     
     suspend fun downloadImage(url: String): ByteArray? = withContext(Dispatchers.IO) {
         runCatching {
             val client = okhttp3.OkHttpClient()

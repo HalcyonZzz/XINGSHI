@@ -2,7 +2,7 @@ package com.xingshi.ai.feature.qqbot.ui
 
 import com.xingshi.ai.theme.framework.ThemeRuntime
 
-/** QQBot 设置页文案统一入口：固定字样取主题文案（作者可按 key 覆盖），插值只保留用户数据。 */
+ 
 object QQBotStrings {
     val SETTINGS_TITLE: String get() = ThemeRuntime.resolveText("qqbot_settings_title")
     val BACK: String get() = ThemeRuntime.resolveText("qqbot_back")

@@ -33,10 +33,7 @@ import java.util.Locale
 import java.util.concurrent.ConcurrentHashMap
 import kotlinx.serialization.json.Json
 
-/**
- * 官方主题：随应用内置、首次默认选中，始终保留恢复能力。
- * 提供晴蓝配色与官方五种语言文案，并注册官方市场目录来源。
- */
+ 
 object OfficialTheme : OfficialThemeProvider {
 
     val manifest = ThemeManifest(
@@ -88,8 +85,8 @@ object OfficialTheme : OfficialThemeProvider {
             0
         }
         if (id == 0) return null
-        // 统一交付原始模板：格式化只由 ThemeTextResolver 执行一次，
-        // 用户填写值（可能含 %s/%q 等字符）不再被当作格式串二次解释。
+        
+        
         return try {
             resources.getString(id)
         } catch (e: Exception) {
@@ -130,6 +127,6 @@ object OfficialTheme : OfficialThemeProvider {
 
     private const val CATALOG_ASSET = "themes/market.json"
 
-    /** 官方默认语言与主题框架一致。 */
+     
     val defaultLanguage: String = DEFAULT_LANGUAGE
 }

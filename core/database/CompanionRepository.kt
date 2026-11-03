@@ -15,8 +15,6 @@ class CompanionRepository(private val companionDao: CompanionDao) {
 
     suspend fun updateCompanion(companion: CompanionEntity) = companionDao.updateCompanion(companion)
 
-    suspend fun deleteCompanion(companion: CompanionEntity) = companionDao.deleteCompanion(companion)
-
     suspend fun updateTimestamp(id: Long) = companionDao.updateTimestamp(id)
 
     suspend fun getIntimacy(id: Long): Int? = companionDao.getIntimacy(id)

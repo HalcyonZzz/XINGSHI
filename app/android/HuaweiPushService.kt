@@ -5,9 +5,7 @@ import com.huawei.hms.push.RemoteMessage
 import com.xingshi.ai.common.SecureLog
 import com.xingshi.ai.push.dispatch.PushMessageDispatcher
 
-/**
- * 华为 HMS 推送服务。
- */
+ 
 class HuaweiPushService : HmsMessageService() {
 
     override fun onNewToken(token: String) {

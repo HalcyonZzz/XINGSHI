@@ -10,12 +10,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.withTimeoutOrNull
 
-/**
- * ChatViewModel 用户输入安全检查流水线。
- *
- * 阶段输出 = 下一阶段输入，失败短路返回。
- * 流水线状态可观测，供 UI 监控使用。
- */
+ 
 class MessagePipelineRunner(
     private val onViolation: ((ContentFilter.ViolationLevel) -> Unit)? = null
 ) : MessagePipeline {
@@ -80,7 +75,7 @@ class MessagePipelineRunner(
             true
 
         } catch (e: kotlinx.coroutines.CancellationException) {
-            // [CRITICAL] 必须重新抛出 CancellationException，否则 withTimeoutOrNull 失效
+            
             _queueDepth.value = maxOf(0, _queueDepth.value - 1)
             throw e
         } catch (e: Throwable) {

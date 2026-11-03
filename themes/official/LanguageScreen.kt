@@ -42,10 +42,7 @@ import com.xingshi.ai.theme.framework.ThemeRuntime
 import com.xingshi.ai.theme.framework.rememberThemeState
 import com.xingshi.ai.theme.framework.themeText
 
-/**
- * 语言设置：语言列表来自主题框架（官方语言 + 当前主题新增语言），
- * 新增语言不需要修改宿主固定枚举。
- */
+ 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LanguageScreen(

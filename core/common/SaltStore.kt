@@ -6,21 +6,7 @@ import java.security.MessageDigest
 import java.security.SecureRandom
 import java.util.concurrent.ConcurrentHashMap
 
-/**
- * SaltStore — Runtime-derived cryptographic salts for data integrity verification.
- *
- * Replaces compile-time hardcoded salts with per-namespace salts that are:
- * - Generated on first use from SHA-256(packageName + namespace + SecureRandom.nextBytes(16))
- * - Persisted to SharedPreferences (runtime-only, not in DEX)
- * - Unique per device install (SecureRandom seed)
- *
- * Usage:
- *   // In Application.onCreate():
- *   SaltStore.init(applicationContext)
- *
- *   // In repository code:
- *   val salt = SaltStore.getSalt("quiz")  // or "keyword"
- */
+ 
 object SaltStore {
 
     private const val PREFS_NAME = "xingshi_salt_store"
@@ -31,19 +17,13 @@ object SaltStore {
 
     private val saltCache = ConcurrentHashMap<String, String>()
 
-    /**
-     * Initialize the SaltStore with an application context.
-     * Must be called before any salt retrieval.
-     */
+     
     @JvmStatic
     fun init(appContext: Context) {
         context = appContext.applicationContext
     }
 
-    /**
-     * Get the runtime-derived salt for a given namespace.
-     * Generated on first access, cached in memory and persisted to SharedPreferences.
-     */
+     
     @JvmStatic
     fun getSalt(namespace: String): String {
         val ctx = context

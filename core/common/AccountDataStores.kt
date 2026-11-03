@@ -7,7 +7,7 @@ import androidx.datastore.preferences.core.Preferences
 import kotlinx.coroutines.*
 import java.io.File
 
-/** The delegated Context DataStore caches forever; account switches need their own managed instance. */
+ 
 object AccountDataStores {
     private val stores = mutableMapOf<String, DataStore<Preferences>>()
     private var scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)

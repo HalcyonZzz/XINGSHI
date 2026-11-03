@@ -46,12 +46,7 @@ import com.xingshi.ai.common.OppoVivoAdaptationHelper
 import com.xingshi.ai.common.RomUtils
 import com.xingshi.ai.theme.framework.themeText
 
-/**
- * 设置页 - 权限与后台运行卡片。
- *
- * 针对 OPPO / vivo / 其他国产 ROM 提供统一的电池优化、自启动、后台高耗电、
- * 通知权限等设置入口，引导用户完成保活所需的系统授权。
- */
+ 
 @Composable
 fun BackgroundPermissionsCard(
     isVisible: Boolean,

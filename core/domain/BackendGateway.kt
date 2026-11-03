@@ -26,7 +26,7 @@ interface BackendAccountGateway {
     fun reconnect()
 }
 
-/** Values cross the feature boundary; transport and secrets remain in network. */
+ 
 data class CloudCompanionDraft(
     val localId: Long, val name: String, val personality: String,
     val backstory: String?, val speakingStyle: String?, val rawPrompt: String?
@@ -42,7 +42,7 @@ data class ChatModelDraft(
     val apiKey: String, val temperature: Float, val maxTokens: Int?, val provider: String
 )
 
-/** Stable supplier identity and wire format are distinct parts of a MAIN binding. */
+ 
 fun mainChatProtocol(provider: String, formatHint: String): String? = when (provider) {
     "ANTHROPIC" -> "ANTHROPIC_MESSAGES"
     "IFLYTEK" -> "IFLYTEK_HTTP"
@@ -75,7 +75,7 @@ fun ChatModelDraft.configurationIssue(): MainChatConfigurationIssue? = when {
     else -> null
 }
 
-/** 云端确认后的主模型配置；手机只为它保留展示缓存。 */
+ 
 data class CloudChatModelConfiguration(
     val localId: Long, val configurationId: String, val version: Long,
     val provider: String, val protocol: String, val baseUrl: String, val model: String,
@@ -83,14 +83,14 @@ data class CloudChatModelConfiguration(
     val keyConfigured: Boolean, val pending: Boolean
 )
 
-/** 云端配置列表与账号默认；pendingLocalIds 是本机尚有未确认发布命令的缓存行。 */
+ 
 data class CloudChatModelSnapshot(
     val configurations: List<CloudChatModelConfiguration>,
     val defaultConfigurationId: String?, val defaultConfigurationVersion: Long,
     val pendingLocalIds: Set<Long>
 )
 
-/** 发布只有云端确认、明确拒绝、结果未知三种结局，未知结局必须保留原命令。 */
+ 
 sealed interface CloudChatModelPublish {
     data class Confirmed(val configuration: CloudChatModelConfiguration) : CloudChatModelPublish
     data class Rejected(val reason: String) : CloudChatModelPublish
@@ -101,11 +101,11 @@ data class CloudChatModelDefault(val configurationId: String, val version: Long,
 
 interface ChatModelCloudGateway {
     suspend fun publish(draft: ChatModelDraft): CloudChatModelPublish
-    /** 把缓存行登记到云端已有配置，只登记引用，不发布。 */
+     
     suspend fun attach(localId: Long, configurationId: String)
     suspend fun configurations(): CloudChatModelSnapshot
     suspend fun activate(localId: Long): CloudChatModelDefault
-    /** 云端没有删除入口：这里只把配置停用，账号默认与绑定由云端另行裁决。 */
+     
     suspend fun deleteConfiguration(localId: Long)
     suspend fun choices(companionId: Long): List<CloudChatModelChoice>
     suspend fun select(companionId: Long, choice: CloudChatModelChoice)

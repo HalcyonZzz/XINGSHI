@@ -137,7 +137,7 @@ fun setChatBackgroundKey(context: Context, key: String) {
         .edit()
         .putString(CHAT_BG_PREF, key)
         .apply()
-    // 设置背景时预加载到内存缓存
+    
     if (isCustomBackground(key)) {
         ChatBackgroundCache.preload(context, key)
     }
@@ -312,7 +312,7 @@ fun ChatBackgroundPickerDialog(
                     horizontalArrangement = Arrangement.spacedBy(12.dp),
                     verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
-                    // 预设背景
+                    
                     options.forEach { option ->
                         val isSelected = option.key == selectedKey
                         BackgroundOptionItem(
@@ -328,7 +328,7 @@ fun ChatBackgroundPickerDialog(
                         )
                     }
 
-                    // 自定义背景图片
+                    
                     customKeys.forEach { key ->
                         val isSelected = key == selectedKey
                         val uri = getCustomBackgroundUri(context, key)
@@ -352,7 +352,7 @@ fun ChatBackgroundPickerDialog(
                         )
                     }
 
-                    // 添加自定义背景按钮
+                    
                     AddCustomBackgroundItem {
                         imagePicker.launch("image/*")
                     }
@@ -450,7 +450,7 @@ private fun CustomBackgroundItem(
                 }
             }
 
-            // 删除按钮
+            
             Box(
                 modifier = Modifier
                     .align(Alignment.TopEnd)

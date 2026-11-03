@@ -11,18 +11,14 @@ import org.json.JSONObject
 import java.io.File
 import java.util.zip.ZipInputStream
 
-/**
- * 表情包管理器
- * 支持从assets和本地文件加载表情包，支持zip压缩包导入
- * 支持 custom_stickers.json 规则文件，AI可根据描述自动发送表情包
- */
+ 
 class StickerManager(private val context: Context) {
 
     private val stickersDir = File(context.applicationContext.filesDir, "stickers")
     private val importedDir = File(stickersDir, "imported")
     private val stickerRulesFile = File(importedDir, "custom_stickers.json")
 
-    // 缓存表情包规则映射: description -> StickerRule
+    
     private var stickerRules: Map<String, StickerRule> = emptyMap()
 
     init {
@@ -31,18 +27,14 @@ class StickerManager(private val context: Context) {
         loadRules()
     }
 
-    /**
-     * 表情包规则数据类
-     */
+     
     data class StickerRule(
         val description: String,
         val fileName: String,
         val path: String
     )
 
-    /**
-     * 加载 custom_stickers.json 规则文件
-     */
+     
     private fun loadRules() {
         try {
             Log.i("StickerManager", "Loading rules from: ${stickerRulesFile.absolutePath}")
@@ -50,7 +42,7 @@ class StickerManager(private val context: Context) {
             Log.i("StickerManager", "Imported dir: ${importedDir.absolutePath}")
             Log.i("StickerManager", "Imported dir exists: ${importedDir.exists()}")
 
-            // 列出导入目录中的所有文件
+            
             val files = importedDir.listFiles()
             if (files != null) {
                 Log.i("StickerManager", "Files in imported dir (${files.size}):")
@@ -97,14 +89,11 @@ class StickerManager(private val context: Context) {
         }
     }
 
-    /**
-     * 获取所有可用的表情包
-     * 包括内置的和用户导入的
-     */
+     
     suspend fun getAllStickers(): List<StickerInfo> = withContext(Dispatchers.IO) {
         val stickers = mutableListOf<StickerInfo>()
 
-        // 1. 从assets加载内置表情包
+        
         try {
             val assetStickers = context.assets.list("stickers") ?: emptyArray()
             assetStickers.forEach { filename ->
@@ -121,11 +110,11 @@ class StickerManager(private val context: Context) {
             SecureLog.w("StickerManager", "No assets/stickers found")
         }
 
-        // 2. 从导入目录加载用户表情包（优先使用规则中的描述作为name）
+        
         val rules = stickerRules
         importedDir.listFiles()?.forEach { file ->
             if (isImageFile(file.name)) {
-                // 查找规则中的描述
+                
                 val rule = rules.values.find { it.fileName == file.name }
                 stickers.add(StickerInfo(
                     name = rule?.description ?: file.nameWithoutExtension,
@@ -141,16 +130,13 @@ class StickerManager(private val context: Context) {
         stickers
     }
 
-    /**
-     * 根据描述精确查找表情包
-     * 用于AI发送表情包时严格匹配
-     */
+     
     fun findStickerByDescriptionExact(keyword: String): StickerInfo? {
         if (keyword.isBlank()) return null
 
         val rules = stickerRules
 
-        // 只精确匹配描述
+        
         rules[keyword]?.let { rule ->
             return StickerInfo(
                 name = rule.description,
@@ -165,16 +151,13 @@ class StickerManager(private val context: Context) {
         return null
     }
 
-    /**
-     * 根据描述或文件名查找匹配的表情包
-     * 用于AI根据情绪/场景自动选择表情包，也用于显示已发送的表情包
-     */
+     
     fun findStickerByDescription(keyword: String): StickerInfo? {
         if (keyword.isBlank()) return null
 
         val rules = stickerRules
 
-        // 0. 先尝试直接匹配文件名（用于显示已发送的表情包）
+        
         val directFile = File(importedDir, keyword)
         if (directFile.exists()) {
             val rule = rules.values.find { it.fileName == keyword }
@@ -188,7 +171,7 @@ class StickerManager(private val context: Context) {
             )
         }
 
-        // 1. 精确匹配描述
+        
         rules[keyword]?.let { rule ->
             return StickerInfo(
                 name = rule.description,
@@ -200,7 +183,7 @@ class StickerManager(private val context: Context) {
             )
         }
 
-        // 2. 模糊匹配 - 关键词包含在描述中
+        
         rules.entries.find { it.key.contains(keyword) || keyword.contains(it.key) }?.let { entry ->
             return StickerInfo(
                 name = entry.value.description,
@@ -212,7 +195,7 @@ class StickerManager(private val context: Context) {
             )
         }
 
-        // 3. 尝试匹配文件名（不带扩展名）
+        
         importedDir.listFiles()?.forEach { file ->
             if (file.nameWithoutExtension == keyword || file.name == keyword) {
                 val rule = rules.values.find { it.fileName == file.name }
@@ -230,21 +213,13 @@ class StickerManager(private val context: Context) {
         return null
     }
 
-    /**
-     * 获取所有表情包规则，用于AI系统提示
-     * 会重新加载规则文件以确保最新
-     */
+     
     fun getAllRules(): List<StickerRule> {
         loadRules()
         return stickerRules.values.toList()
     }
 
-    /**
-     * 导入表情包压缩包（zip）
-     * 支持包含 custom_stickers.json 规则文件的压缩包
-     * @param zipPath zip文件路径
-     * @return 导入的表情包数量
-     */
+     
     suspend fun importStickerZip(zipPath: String): Int = withContext(Dispatchers.IO) {
         var count = 0
         var hasRules = false
@@ -265,7 +240,7 @@ class StickerManager(private val context: Context) {
                     val entryName = entry.name.substringAfterLast("/")
                     Log.i("StickerManager", "ZIP entry: $entryName (isDir=${entry.isDirectory})")
                     when {
-                        // 解析规则文件
+                        
                         entryName == "custom_stickers.json" -> {
                             val destFile = File(importedDir, entryName)
                             Log.i("StickerManager", "Extracting rules to: ${destFile.absolutePath}")
@@ -275,7 +250,7 @@ class StickerManager(private val context: Context) {
                             hasRules = true
                             Log.i("StickerManager", "Rules file extracted successfully, size=${destFile.length()}")
                         }
-                        // 导入图片文件
+                        
                         !entry.isDirectory && isImageFile(entryName) -> {
                             val destFile = File(importedDir, entryName)
                             destFile.outputStream().use { output ->
@@ -289,7 +264,7 @@ class StickerManager(private val context: Context) {
                 }
             }
 
-            // 如果有规则文件，重新加载规则
+            
             if (hasRules) {
                 Log.i("StickerManager", "Has rules, reloading...")
                 loadRules()
@@ -305,9 +280,7 @@ class StickerManager(private val context: Context) {
         }
     }
 
-    /**
-     * 删除导入的表情包
-     */
+     
     suspend fun deleteImportedSticker(fileName: String): Boolean = withContext(Dispatchers.IO) {
         try {
             val file = File(importedDir, fileName)
@@ -324,9 +297,7 @@ class StickerManager(private val context: Context) {
         }
     }
 
-    /**
-     * 删除所有导入的表情包和规则文件
-     */
+     
     suspend fun deleteAllImportedStickers(): Boolean = withContext(Dispatchers.IO) {
         try {
             var deleted = 0
@@ -342,9 +313,7 @@ class StickerManager(private val context: Context) {
         }
     }
 
-    /**
-     * 获取表情包的Bitmap
-     */
+     
     suspend fun loadStickerBitmap(stickerPath: String): Bitmap? = withContext(Dispatchers.IO) {
         try {
             when {
@@ -364,15 +333,10 @@ class StickerManager(private val context: Context) {
         }
     }
 
-    /**
-     * 获取导入目录路径
-     */
+     
     fun getImportedDir(): String = importedDir.absolutePath
 
-    /**
-     * 根据回复文本的情绪/内容主动选择合适的表情包
-     * AI 不需要写 [描述] 标记也能自动发送表情包
-     */
+     
     fun pickStickerForMood(text: String): StickerInfo? {
         if (text.isBlank()) return null
 
@@ -471,9 +435,7 @@ class StickerManager(private val context: Context) {
     }
 }
 
-/**
- * 表情包信息
- */
+ 
 data class StickerInfo(
     val name: String,
     val path: String,

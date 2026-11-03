@@ -2,19 +2,13 @@ package com.xingshi.ai.feature.chat
 
 import com.xingshi.ai.network.BackendChatFailure
 
-/**
- * Phone-side rendering map for the backend's bounded chat failure vocabulary.
- *
- * 这一层只交付稳定文案 key 与结构化目标，不生成最终文案：组合式页面用 themeText(key)
- * 走「作者主题当前语言 → 官方当前语言 → 官方默认语言 → 占位符」回退，因此切换主题语言后
- * 已显示文案会随主题状态重新渲染。key 与 themes/official/res 下的官方 strings 资源同名。
- */
+ 
 object ChatFailureDisplay {
     enum class Target { PROFILE, MAIN_MODEL, RETRY, HINT }
 
     data class Entry(val labelKey: String, val target: Target)
 
-    /** 保留后端结构化分类（code/category/retryable/next_action）与原始 reason，供调用方诊断。 */
+     
     data class Presentation(
         val reasonKey: String,
         val entry: Entry?,
@@ -38,7 +32,7 @@ object ChatFailureDisplay {
         )
     }
 
-    /** 一码一键；未知 code 先落 category 键，再按 retryable 选兜底键，绝不回显内部 code。 */
+     
     fun reasonKey(failure: BackendChatFailure?): String {
         failure ?: return REASON_OTHER
         CODE_KEYS[failure.code]?.let { return it }
@@ -50,7 +44,7 @@ object ChatFailureDisplay {
 
     fun reasonKeyForCategory(category: String): String? = CATEGORY_KEYS[category]
 
-    /** HTTP-level rejection codes share the same closed vocabulary; their next action is derived the same way. */
+     
     fun nextActionForCode(code: String): String = CODE_ACTIONS[code] ?: ""
 
     fun entry(nextAction: String): Entry? = ENTRIES[nextAction]

@@ -22,18 +22,14 @@ import javax.crypto.spec.GCMParameterSpec
 import javax.crypto.spec.PBEKeySpec
 import javax.crypto.spec.SecretKeySpec
 
-/**
- * 数据备份/恢复 ViewModel。
- *
- * 状态空间 S ∈ {Idle, Exporting, Importing, Success(message), Error(message)}
- */
+ 
 class BackupViewModel(application: Application) : AndroidViewModel(application) {
 
     private val exportService = BackupExportService(application)
     private val importService = BackupImportService(application)
     private val json = Json { ignoreUnknownKeys = true; prettyPrint = false }
 
-    // --- UI State ---
+    
     sealed class UiState {
         data object Idle : UiState()
         data object Exporting : UiState()
@@ -51,7 +47,7 @@ class BackupViewModel(application: Application) : AndroidViewModel(application) 
     private val _importRequest = MutableSharedFlow<Unit>()
     val importRequest = _importRequest.asSharedFlow()
 
-    // --- Actions ---
+    
 
     fun export(password: String) {
         viewModelScope.launch {
@@ -72,26 +68,26 @@ class BackupViewModel(application: Application) : AndroidViewModel(application) 
         viewModelScope.launch {
             _uiState.value = UiState.Importing
             try {
-                // 读取文件
+                
                 val fileBytes = withContext(Dispatchers.IO) {
                     getApplication<Application>().contentResolver.openInputStream(uri)?.use { it.readBytes() }
                         ?: throw IllegalStateException("无法读取文件")
                 }
 
-                // 解密
+                
                 val jsonBytes = decrypt(fileBytes, password)
                 val jsonString = String(jsonBytes, Charsets.UTF_8)
 
-                // 反序列化
+                
                 val data = json.decodeFromString(BackupData.serializer(), jsonString)
 
-                // 版本检查
+                
                 if (data.version > 1) {
                     _uiState.value = UiState.Error("备份文件版本过高 (v${data.version})，请升级应用后重试")
                     return@launch
                 }
 
-                // 导入
+                
                 importService.import(data).fold(
                     onSuccess = {
                         _uiState.value = UiState.Success("导入成功，请重启应用以加载数据")
@@ -127,7 +123,7 @@ class BackupViewModel(application: Application) : AndroidViewModel(application) 
         _uiState.value = UiState.Idle
     }
 
-    // --- 加密/解密 ---
+    
 
     companion object Crypto {
         private const val MAGIC = "LYBK"
@@ -143,8 +139,8 @@ class BackupViewModel(application: Application) : AndroidViewModel(application) 
 
             val cipher = Cipher.getInstance("AES/GCM/NoPadding")
             cipher.init(Cipher.ENCRYPT_MODE, key)
-            val iv = cipher.iv  // GCM 自动生成 12-byte IV
-            val ciphertext = cipher.doFinal(plaintext)  // 包含 16-byte auth tag
+            val iv = cipher.iv  
+            val ciphertext = cipher.doFinal(plaintext)  
 
             val out = ByteArrayOutputStream()
             out.write(MAGIC.toByteArray(Charsets.UTF_8))

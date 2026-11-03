@@ -88,28 +88,17 @@ import kotlinx.coroutines.launch
 import kotlin.math.abs
 import com.xingshi.ai.theme.framework.themeText
 
-/**
- * 主界面 — NavHost + Pager + Scaffold 编排。
- *
- * 状态空间模型:
- *   S ∈ {Home, Contacts, Profile, Chat(id), ChatDetail(id),
- *        GroupChat(id), GroupDetail(id), CreateGroup, Settings, Theme, Language,
- *        About, FrameRate, GeneralSettings, OriginOSAdaption,
- *        WeChatSettings, WeChatBind,
- *        AgreementView, CreateCompanion, EditCompanion(id)}
- *   差分方程: S[k+1] = f(S[k], E[k])
- *   验证: 所有状态出度 ≥ 1 (popBackStack 保证)
- */
+ 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
 fun MainScreen(mainActivity: Activity) {
     val navController = rememberNavController()
-    // 宿主恢复路径：作者 Wrap 不组合宿主内容时，恢复模式直接组合本内容并进入主题管理。
+    
     val recoveryMode by ThemeRuntime.recoveryMode.collectAsStateWithLifecycle()
     var recoveryEnteredManage by remember { mutableStateOf(false) }
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
-    // 恢复模式下当前路由被深链/回退改变时持续拉回管理页，直到用户离开管理页。
+    
     LaunchedEffect(currentRoute, recoveryMode) {
         if (!recoveryMode) return@LaunchedEffect
         if (currentRoute == MainRoute.ThemeManage.route) {
@@ -130,7 +119,7 @@ fun MainScreen(mainActivity: Activity) {
         navController.navigate(MainRoute.Chat(companionId).route)
     }
 
-    // 深度链接 / 冷启动恢复最近打开的单聊
+    
     LaunchedEffect(Unit) {
         val intent = valActivity.intent
         if (intent.getBooleanExtra("open_chat", false)) {
@@ -152,7 +141,7 @@ fun MainScreen(mainActivity: Activity) {
         }
     }
 
-    // singleTask 热通知：页面已在栈中时只收到新 Intent，需要在这里继续消费 open_chat。
+    
     LaunchedEffect(Unit) {
         com.xingshi.ai.common.AppIntentRouter.incoming.collect { intent ->
             if (intent.getBooleanExtra("open_chat", false)) {
@@ -166,7 +155,7 @@ fun MainScreen(mainActivity: Activity) {
         }
     }
 
-    // 引导弹窗
+    
     MainScreenDialogs(
         onAutoStartSettings = { BatteryOptimizationHelper.openAutoStartSettings(context) },
         onBatterySettings = { BatteryOptimizationHelper.requestIgnoreBatteryOptimizations(context) }
@@ -191,7 +180,7 @@ fun MainScreen(mainActivity: Activity) {
     val pagerState = rememberPagerState(pageCount = { 3 })
     val coroutineScope = rememberCoroutineScope()
 
-    // 记住离开 tab 页面前的 pager 位置，返回时恢复（用 rememberSaveable 防止 NavHost 过渡重建丢失）
+    
     var lastTabPage by rememberSaveable { mutableIntStateOf(0) }
 
     val pageRoutes = listOf("home", "star_circle", "profile")
@@ -210,11 +199,11 @@ fun MainScreen(mainActivity: Activity) {
 
     LaunchedEffect(currentRoute) {
         if (currentRoute !in mainTabRoutes) {
-            // 离开 tab 页面（进入聊天等）—— 记住当前位置
+            
             lastTabPage = pagerState.currentPage
             return@LaunchedEffect
         }
-        // 返回 tab 页面 —— 恢复到离开前的位置，而非强制定位到首页
+        
         val targetPage = when (currentRoute) {
             "star_circle" -> 1
             "profile" -> 2
@@ -225,7 +214,7 @@ fun MainScreen(mainActivity: Activity) {
         }
     }
 
-    // 横向滑动冲突处理: 不阻断横向, 让 pager 和子层各自处理各自轴
+    
     val angleNestedScrollConnection = remember {
         object : NestedScrollConnection {
             override fun onPreScroll(available: Offset, source: NestedScrollSource): Offset = Offset.Zero
@@ -276,7 +265,7 @@ fun MainScreen(mainActivity: Activity) {
                     fadeOut(animationSpec = tween(200)) + slideOutHorizontally(animationSpec = tween(250), targetOffsetX = { it / 4 })
                 }
             ) {
-                // === 主页 Pager ===
+                
                 composable(MainRoute.Home.route) {
                     val pagerOffset by remember { derivedStateOf { pagerState.currentPageOffsetFraction } }
                     HorizontalPager(
@@ -395,9 +384,9 @@ fun MainScreen(mainActivity: Activity) {
                                     onSettingsClick = { navController.navigate(MainRoute.Settings.route) },
                                     onPluginManageClick = { navController.navigate(MainRoute.PluginManage.route) },
                                     onThemeManageClick = { navController.navigate(MainRoute.ThemeManage.route) },
-                                    // 总设置
+                                    
                                     onGeneralSettingsClick = { navController.navigate(MainRoute.GeneralSettings.route) },
-                                    // 关于
+                                    
                                     onAboutClick = { navController.navigate(MainRoute.About.route) }
                                 )
                             }
@@ -421,14 +410,14 @@ fun MainScreen(mainActivity: Activity) {
                     )
                 }
 
-                // === 伴侣创建/编辑 ===
+                
                 composable(MainRoute.CreateCompanion.route) { CreateCompanionScreen(onNavigateBack = { navController.popBackStack() }) }
                 composable(MainRoute.EditCompanion(0).route.replace("0", "{companionId}"), arguments = listOf(navArgument("companionId") { type = NavType.LongType })) { backStackEntry ->
                     val companionId = backStackEntry.arguments?.getLong("companionId") ?: 0L
                     CreateCompanionScreen(companionId = companionId, onNavigateBack = { navController.popBackStack() })
                 }
 
-                // === 聊天 ===
+                
                 composable(MainRoute.Chat(0).route.replace("0", "{companionId}"), arguments = listOf(navArgument("companionId") { type = NavType.LongType })) { backStackEntry ->
                     val companionId = backStackEntry.arguments?.getLong("companionId") ?: 0L
                     ChatScreen(
@@ -450,7 +439,7 @@ fun MainScreen(mainActivity: Activity) {
                     )
                 }
 
-                // === 群聊 ===
+                
                 composable(MainRoute.GroupChat(0).route.replace("0", "{groupId}"), arguments = listOf(navArgument("groupId") { type = NavType.LongType })) { backStackEntry ->
                     val groupId = backStackEntry.arguments?.getLong("groupId") ?: 0L
                     GroupChatScreen(groupId = groupId, onNavigateBack = { navController.popBackStack() }, onNavigateToDetail = { navController.navigate("group_detail/$it") })
@@ -461,7 +450,7 @@ fun MainScreen(mainActivity: Activity) {
                 }
                 composable(MainRoute.CreateGroup.route) { CreateGroupScreen(onNavigateBack = { navController.popBackStack() }) }
 
-                // === 设置 ===
+                
                 composable(MainRoute.Settings.route) { SettingsScreen(onNavigateBack = { navController.popBackStack() }) }
                 composable(MainRoute.ThemeMarket.route) { ThemeMarketScreen(onNavigateBack = { navController.popBackStack() }) }
                 composable(MainRoute.ThemeManage.route) {

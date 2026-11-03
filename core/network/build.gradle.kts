@@ -34,6 +34,6 @@ dependencies {
     implementation(libs.kotlinx.serialization.json)
     testImplementation(libs.junit)
 
-    // Kotlin coroutines
+    
     implementation(libs.kotlinx.coroutines.android)
 }

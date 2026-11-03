@@ -24,11 +24,11 @@
     <uses-permission android:name="android.permission.WAKE_LOCK" />
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
 
-    <!-- IQOO/OriginOS JobScheduler 保活 -->
+    
     <uses-permission android:name="android.permission.BIND_JOB_SERVICE"
         tools:ignore="ProtectedPermissions" />
 
-    <!-- OPPO / vivo 厂商 Push 权限 -->
+    
     <uses-permission android:name="com.coloros.mcs.permission.RECEIVE_MCS_MESSAGE" />
     <uses-permission android:name="com.heytap.mcs.permission.RECEIVE_MCS_MESSAGE" />
     <uses-permission android:name="com.vivo.push.permission.RECEIVE" />
@@ -80,7 +80,7 @@
             android:foregroundServiceType="dataSync"
             android:stopWithTask="false" />
 
-        <!-- IQOO/OriginOS 第三层兜底保活 JobService -->
+        
         <service
             android:name=".IqooKeepAliveJobService"
             android:enabled="true"
@@ -103,14 +103,14 @@
             android:theme="@style/Theme.XingShi"
             android:launchMode="singleTask"
             android:windowSoftInputMode="adjustResize">
-            <!-- 桌面启动入口 -->
+            
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
 
-        <!-- vivo Push 密钥配置（未配置时留空，SDK 会跳过注册） -->
+        
         <meta-data
             android:name="com.vivo.push.api_key"
             android:value="${VIVO_PUSH_API_KEY}" />
@@ -118,7 +118,7 @@
             android:name="com.vivo.push.app_id"
             android:value="${VIVO_PUSH_APP_ID}" />
 
-        <!-- OPPO Push 服务（兼容 ColorOS 各版本 action） -->
+        
         <service
             android:name=".push.service.OppoPushService"
             android:exported="true"
@@ -137,7 +137,7 @@
             </intent-filter>
         </service>
 
-        <!-- vivo Push 服务与接收器 -->
+        
         <service
             android:name="com.vivo.push.sdk.service.CommandClientService"
             android:exported="true"
@@ -157,25 +157,9 @@
             </intent-filter>
         </receiver>
 
-        <!--
-        小米 Push 接收器
-        引入 MiPush SDK aar 后取消注释，并创建 XiaomiPushReceiver 继承 PushMessageReceiver。
-        <receiver
-            android:name=".push.receiver.XiaomiPushReceiver"
-            android:exported="true">
-            <intent-filter>
-                <action android:name="com.xiaomi.mipush.RECEIVE_MESSAGE" />
-            </intent-filter>
-            <intent-filter>
-                <action android:name="com.xiaomi.mipush.MESSAGE_ARRIVED" />
-            </intent-filter>
-            <intent-filter>
-                <action android:name="com.xiaomi.mipush.ERROR" />
-            </intent-filter>
-        </receiver>
-        -->
+        
 
-        <!-- 华为 HMS Push 服务 -->
+        
         <service
             android:name=".push.service.HuaweiPushService"
             android:exported="false">

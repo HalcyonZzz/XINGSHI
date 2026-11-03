@@ -3,20 +3,12 @@ package com.xingshi.ai.common
 import android.content.Context
 import java.io.ByteArrayInputStream
 
-/**
- * Transparent decryption of XOR-encrypted assets.
- *
- * Build-time: python3 tools/encrypt_assets.py <assets_dir>
- *     Original file → file.enc (XOR-encrypted), original deleted
- *
- * Runtime: EncryptedAssetLoader.load(context, "filename.json")
- *     → reads filename.json.enc, decrypts with embedded key, returns ByteArray
- */
+ 
 object EncryptedAssetLoader {
 
-    /** XOR key (32 bytes) — matches tools/encrypt_assets.py output */
+     
     private val xorKey: ByteArray by lazy {
-        // XOR-obfuscated key bytes to prevent plaintext extraction from DEX
+        
         val obfuscated = byteArrayOf(
             0xe3.toByte(), 0x5f, 0x8a.toByte(), 0x2c, 0x71, 0xde.toByte(), 0x49, 0xb6.toByte(),
             0x07, 0x95.toByte(), 0xc8.toByte(), 0x3d, 0xaa.toByte(), 0x16, 0xef.toByte(), 0x54,
@@ -32,12 +24,7 @@ object EncryptedAssetLoader {
         ByteArray(32) { i -> (obfuscated[i].toInt() xor deobfuscate[i].toInt()).toByte() }
     }
 
-    /**
-     * Load and decrypt an asset file.
-     * @param context Application context
-     * @param assetName Original filename (e.g., "content_filter_keywords.json")
-     * @return Decrypted content as ByteArray, or null if not found
-     */
+     
     fun load(context: Context, assetName: String): ByteArray? {
         return try {
             val encrypted = context.assets.open("$assetName.enc").use { it.readBytes() }
@@ -45,7 +32,7 @@ object EncryptedAssetLoader {
                 (encrypted[i].toInt() xor (xorKey[i % xorKey.size].toInt() and 0xff)).toByte()
             }
         } catch (e: Exception) {
-            // Fallback: try loading unencrypted version (dev mode)
+            
             try {
                 context.assets.open(assetName).use { it.readBytes() }
             } catch (_: Exception) {
@@ -54,9 +41,7 @@ object EncryptedAssetLoader {
         }
     }
 
-    /**
-     * Load and decrypt as String (UTF-8).
-     */
+     
     fun loadString(context: Context, assetName: String): String? {
         return load(context, assetName)?.toString(Charsets.UTF_8)
     }

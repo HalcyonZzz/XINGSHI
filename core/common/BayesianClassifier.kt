@@ -1,33 +1,22 @@
 package com.xingshi.ai.common.safety
 
-/**
- * 多项式朴素贝叶斯分类器 + Laplace 平滑。
- *
- * 每个通道（用户输入 / 模型输出）各自持有一个独立实例，
- * 分别在自己的样本集上训练，保持概率分布独立。
- *
- * 算法：
- *   P(term | class) = (count(term, class) + alpha) / (total_terms_class + alpha * vocab_size)
- *   P(class | text)  ∝ P(class) × Π P(term_i | class)
- *
- * 平滑参数 alpha = 1.0（Laplace 平滑），防止零概率。
- */
+ 
 class BayesianClassifier(
     private val alpha: Double = 1.0
 ) {
-    // 每个类的词频: class -> (term -> count)
+    
     private val termFreqByClass = mutableMapOf<Boolean, MutableMap<String, Int>>()
-    // 每个类的总词数
+    
     private val totalTermsByClass = mutableMapOf<Boolean, Int>()
-    // 每个类的样本数
+    
     private val sampleCountByClass = mutableMapOf<Boolean, Int>()
 
-    /** 样本总数 */
+     
     @Volatile
     var totalSamples: Int = 0
         private set
 
-    /** 全词表大小（用于 Laplace 平滑归一化） */
+     
     private var vocabSize: Int = 0
 
     init {
@@ -39,9 +28,9 @@ class BayesianClassifier(
         sampleCountByClass[false] = 0
     }
 
-    // ============ 训练 ============
+    
 
-    /** 批量训练 */
+     
     @Synchronized
     fun train(samples: List<SafetySample>) {
         for (sample in samples) {
@@ -50,19 +39,14 @@ class BayesianClassifier(
         rebuildVocab()
     }
 
-    /** 增量添加单个样本 */
+     
     @Synchronized
     fun addSample(sample: SafetySample) {
         val grams = NGramExtractor.extract(sample.text)
         addTokensInternal(grams, sample.isViolation)
     }
 
-    /**
-     * 直接添加 token 列表作为一个完整样本（跳过 n-gram 提取，用于结构化特征训练）。
-     *
-     * 按样本计数、不按 token 计数：逐 token 递增 sampleCountByClass 和 totalSamples
-     * 会让先验概率严重偏向违规，因此每个样本只递增一次计数。
-     */
+     
     @Synchronized
     fun addSampleDirect(tokens: List<String>, isViolation: Boolean) {
         val freq = termFreqByClass[isViolation]!!
@@ -70,16 +54,13 @@ class BayesianClassifier(
             freq[t] = (freq[t] ?: 0) + 1
         }
         totalTermsByClass[isViolation] = totalTermsByClass[isViolation]!! + tokens.size
-        // 按样本计数，每个样本只递增一次
+        
         sampleCountByClass[isViolation] = sampleCountByClass[isViolation]!! + 1
         totalSamples++
         vocabSize = -1
     }
 
-    /**
-     * 添加单个 token（兼容旧调用）。
-     * 注意：单个 token 仍视为一个样本，但建议使用 [addSampleDirect] 批量添加。
-     */
+     
     @Synchronized
     fun addSampleDirect(token: String, isViolation: Boolean) {
         addSampleDirect(listOf(token), isViolation)
@@ -102,21 +83,14 @@ class BayesianClassifier(
         vocabSize = allTerms.size
     }
 
-    // ============ 分类 ============
+    
 
-    /**
-     * 对文本评分，返回 P(违规 | text)。
-     *
-     * 使用对数空间计算避免浮点下溢。
-     */
+     
     fun classify(text: String): Double {
         return classifyTokens(NGramExtractor.extract(text))
     }
 
-    /**
-     * 基于预提取 token 分类 — 用于结构化特征 token（SafetyFeatureExtractor 产物）。
-     * 跳过 n-gram 提取步骤，直接做概率计算。
-     */
+     
     @Synchronized
     fun classifyTokens(tokens: List<String>): Double {
         if (totalSamples == 0) return 0.5
@@ -135,15 +109,15 @@ class BayesianClassifier(
         return probViolation / (probViolation + probSafe)
     }
 
-    /** 基于预提取 token 的贡献度查询 */
+     
     
-    /** 导出先验概率 [P(safe), P(violation)] */
+     
     @Synchronized
     fun exportPriors(): FloatArray = floatArrayOf(
         priorSafe().toFloat(), priorViolation().toFloat()
     )
 
-    /** 导出所有已知 token 的似然 [P(t|safe), P(t|violation)]，展平为一维数组 */
+     
     @Synchronized
     fun exportLikelihoods(): Pair<FloatArray, List<String>> {
         val tokens = mutableListOf<String>()
@@ -158,13 +132,7 @@ class BayesianClassifier(
         return values.toFloatArray() to tokens
     }
 
-    /**
-     * Native C++ 预测 — 使用特征维度的似然矩阵。
-     *
-     * 注意 exportLikelihoods() 是 token-based，
-     * 但 native 接收 8 维特征向量，维度与词表大小的似然数组不匹配。
-     * 现改用 computeFeatureLikelihoods() 生成与特征维度对应的似然矩阵。
-     */
+     
     @Synchronized
     fun classifyTokensNative(features: FloatArray): Float {
         return com.xingshi.ai.common.NativeSafetyFilter.bayesianPredict(
@@ -172,14 +140,12 @@ class BayesianClassifier(
         )
     }
 
-    /**
-     * 计算特征维度的似然矩阵（均匀先验 + 小拉普拉斯平滑）。
-     */
+     
     private fun computeFeatureLikelihoods(numFeatures: Int): FloatArray {
         val likelihoods = FloatArray(numFeatures * 2)
         for (i in 0 until numFeatures) {
-            likelihoods[i * 2] = 0.5f + 1e-4f      // P(feature_i | safe)
-            likelihoods[i * 2 + 1] = 0.5f + 1e-4f  // P(feature_i | dangerous)
+            likelihoods[i * 2] = 0.5f + 1e-4f      
+            likelihoods[i * 2 + 1] = 0.5f + 1e-4f  
         }
         return likelihoods
     }
@@ -199,9 +165,7 @@ class BayesianClassifier(
             .take(topN)
     }
 
-    /**
-     * 返回对评分贡献最大的 n-gram 列表（用于可解释性）
-     */
+     
     @Synchronized
     fun topContributingTerms(text: String, topN: Int = 5): List<Pair<String, Double>> {
         val grams = NGramExtractor.extract(text)
@@ -223,24 +187,22 @@ class BayesianClassifier(
             .take(topN)
     }
 
-    // ============ 概率查询 ============
+    
 
-    /** P(违规) 先验 — 钳制上限0.3，防止被污染后先验膨胀导致误杀 */
+     
     @Synchronized
     fun priorViolation(): Double {
         val total = sampleCountByClass[true]!! + sampleCountByClass[false]!!
         if (total == 0) return 0.5
         val raw = sampleCountByClass[true]!!.toDouble() / total
-        return raw.coerceAtMost(0.3)  // 先验上限0.3：正常用户违规比例不应超过30%
+        return raw.coerceAtMost(0.3)  
     }
 
-    /** P(安全) 先验 */
+     
     @Synchronized
     fun priorSafe(): Double = 1.0 - priorViolation()
 
-    /**
-     * P(term | class) 条件概率（Laplace 平滑）
-     */
+     
     @Synchronized
     fun termProbability(term: String, isViolation: Boolean): Double {
         if (vocabSize <= 0) rebuildVocab()
@@ -250,13 +212,13 @@ class BayesianClassifier(
         return (count + alpha) / (total + alpha * vSize)
     }
 
-    /** 获取某类中的词频（调试用） */
+     
     fun termCount(term: String, isViolation: Boolean): Int =
         termFreqByClass[isViolation]?.get(term) ?: 0
 
-    // ============ 序列化 ============
+    
 
-    /** 导出训练状态（用于持久化） */
+     
     @Synchronized
     fun exportState(): BayesianState {
         if (vocabSize <= 0) rebuildVocab()
@@ -272,7 +234,7 @@ class BayesianClassifier(
         )
     }
 
-    /** 导入训练状态 */
+     
     @Synchronized
     fun importState(state: BayesianState) {
         termFreqByClass[true] = state.termFreqViolation.toMutableMap()
@@ -286,9 +248,7 @@ class BayesianClassifier(
     }
 }
 
-/**
- * 分类器状态的序列化快照。
- */
+ 
 data class BayesianState(
     val termFreqViolation: Map<String, Int>,
     val termFreqSafe: Map<String, Int>,

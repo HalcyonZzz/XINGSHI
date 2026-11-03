@@ -15,10 +15,7 @@ import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.withContext
 
-/**
- * 无模型本地分句：按帧能量与静音时长切段，参数全部来自 [SpeechSegmentConfig]。
- * 纯 PCM 累加逻辑独立于录音，便于用可控帧验证边界。
- */
+ 
 internal class PcmSegmentAccumulator(private val config: SpeechSegmentConfig) {
 
     sealed interface Event {
@@ -67,7 +64,7 @@ internal class PcmSegmentAccumulator(private val config: SpeechSegmentConfig) {
         return if (duration >= config.minSegmentMs) {
             Event.Completed(pcm, duration)
         } else {
-            // 过短噪声：丢弃并继续等下一段
+            
             Event.None
         }
     }

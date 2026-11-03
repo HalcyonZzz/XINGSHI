@@ -14,7 +14,7 @@ object SemanticDetector {
         val matchedTerms: List<String>
     )
 
-    // 收紧绕过模式 — 只保留明确的绕过关键词，去掉常见词汇
+    
     private val evasionPatterns = mapOf(
         "CHAR_SUBSTITUTION" to arrayOf(
             """(?i)(s${'$'}x|f${'$'}ck|sh\!t|@ss|b\!tch|d\!ck)""",
@@ -28,7 +28,7 @@ object SemanticDetector {
         )
     )
 
-    // 上下文意图检测 - 只保留明确有害意图
+    
     private val intentPatterns = mapOf(
         "SEXUAL_INTENT" to arrayOf(
             "(?i)(write\\s+(a|me)\\s+(erotic|porn|nude|sex\\s*ual)\\s*(story|scene))",
@@ -47,7 +47,7 @@ object SemanticDetector {
         )
     )
 
-    // 多语言混合检测 — 只保留明确有害的中英混用
+    
     private val multilingualPatterns = mapOf(
         "CHINESE_ENGLISH_MIX" to arrayOf(
             "(?i)(写\\s*(write|generate|create).{0,10}(色情|porn|hentai|性爱))",
@@ -61,21 +61,21 @@ object SemanticDetector {
         )
     )
 
-    /** 预编译的绕过模式: category -> List<Pattern> */
+     
     private val compiledEvasionPatterns: Map<String, List<Pattern>> by lazy {
         evasionPatterns.mapValues { (_, patterns) ->
             patterns.mapNotNull { runCatching { Pattern.compile(it) }.getOrNull() }
         }
     }
 
-    /** 预编译的意图模式: category -> List<Pattern> */
+     
     private val compiledIntentPatterns: Map<String, List<Pattern>> by lazy {
         intentPatterns.mapValues { (_, patterns) ->
             patterns.mapNotNull { runCatching { Pattern.compile(it) }.getOrNull() }
         }
     }
 
-    /** 预编译的多语言模式: category -> List<Pattern> */
+     
     private val compiledMultilingualPatterns: Map<String, List<Pattern>> by lazy {
         multilingualPatterns.mapValues { (_, patterns) ->
             patterns.mapNotNull { runCatching { Pattern.compile(it) }.getOrNull() }
@@ -88,7 +88,7 @@ object SemanticDetector {
         val lowerText = text.lowercase()
         val allMatches = mutableListOf<String>()
 
-        // 1. 检测绕过模式
+        
         for ((category, patterns) in compiledEvasionPatterns) {
             for (pattern in patterns) {
                 try {
@@ -103,7 +103,7 @@ object SemanticDetector {
             }
         }
 
-        // 2. 检测恶意意图
+        
         for ((category, patterns) in compiledIntentPatterns) {
             var matchCount = 0
             for (pattern in patterns) {
@@ -121,7 +121,7 @@ object SemanticDetector {
             }
         }
 
-        // 3. 检测多语言混合
+        
         for ((category, patterns) in compiledMultilingualPatterns) {
             for (pattern in patterns) {
                 try {
@@ -136,7 +136,7 @@ object SemanticDetector {
             }
         }
 
-        // 等级判定 — 只有明确有害内容才 HIGH+，普通绕过仅 LOW
+        
         return when {
             allMatches.isEmpty() ->
                 DetectionResult(false, ContentFilter.ViolationLevel.NONE, "", emptyList())

@@ -51,10 +51,7 @@ class WeChatMessageRepository(
         processScope.cancel()
     }
 
-    /**
-     * 销毁 Repository，取消所有协程和订阅。
-     * 应在 WeChat 功能完全退出时调用。
-     */
+     
     fun destroy() {
         processScope.cancel()
     }
@@ -106,11 +103,11 @@ class WeChatMessageRepository(
         return tokenStore.getContextToken(account.accountId, userId)
     }
 
-    /** 入站文本与图片统一交给通道运行期，再进入宿主对话入口；插件不直接写库。 */
+     
     var inboundSink: (suspend (M0) -> Unit)? = null
     var imageSink: (suspend (M0) -> Unit)? = null
 
-    /** 下载入站图片原件；宿主负责持久化到目标角色，卸载后仍可读。 */
+     
     suspend fun downloadImage(message: M0): ByteArray? = withContext(Dispatchers.IO) {
         val item = message.itemList?.firstOrNull { it.type == M1Type.IMAGE.value }?.imageItem
         val cdn = item?.cdnImg ?: return@withContext null

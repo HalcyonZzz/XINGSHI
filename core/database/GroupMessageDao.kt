@@ -15,7 +15,7 @@ interface GroupMessageDao {
     suspend fun getAllMessagesSync(): List<GroupMessage>
     @Query("UPDATE group_messages SET publishedAuthorName=COALESCE(publishedAuthorName,:name), publishedAuthorStableId=COALESCE(publishedAuthorStableId,:stableId), publishedAuthorInstanceId=COALESCE(publishedAuthorInstanceId,:instanceId) WHERE companionId=:companionId")
     suspend fun preserveAuthor(companionId: Long, name: String, stableId: String, instanceId: String)
-    // Cursor pagination: read messages older than a millisecond timestamp.
+    
     @Query("SELECT * FROM group_messages WHERE groupId = :groupId AND timestamp < :beforeTimestamp ORDER BY timestamp DESC LIMIT :limit")
     fun getMessagesBefore(groupId: Long, beforeTimestamp: Long, limit: Int): Flow<List<GroupMessage>>
 

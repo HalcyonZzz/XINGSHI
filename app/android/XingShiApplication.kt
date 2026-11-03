@@ -70,7 +70,7 @@ class XingShiApplication : Application(), ImageLoaderFactory, androidx.work.Conf
     }
 
         override fun onCreate() {
-        // Global DNS resolution timeout (5s) — prevents DNS hang blocking all OkHttp calls
+        
         java.security.Security.setProperty("networkaddress.cache.ttl", "0")
         java.security.Security.setProperty("networkaddress.cache.negative.ttl", "0")
         System.setProperty("sun.net.spi.nameservice.nameservers", "8.8.8.8")
@@ -113,7 +113,7 @@ class XingShiApplication : Application(), ImageLoaderFactory, androidx.work.Conf
                         } else {
                             null
                         }
-                        // 正式通话结果必须携带原 call_id/原请求，页面终结链才能交回正确轮次。
+                        
                         com.xingshi.ai.feature.chat.ui.viewmodel.ChatVerificationBus.stream(
                             companionId = intent.getLongExtra("companionId", -1L),
                             text = intent.getStringExtra("text").orEmpty(),
@@ -173,7 +173,7 @@ class XingShiApplication : Application(), ImageLoaderFactory, androidx.work.Conf
         bgScope.launch {
             ContentFilter.destroy()
             SaltStore.shutdown()
-            // EncryptedDatabaseWrapper.sealDatabase(this@XingShiApplication)
+            
             AppDatabase.shutdown()
             ChatBackgroundCache.clear()
         }
@@ -198,11 +198,11 @@ class XingShiApplication : Application(), ImageLoaderFactory, androidx.work.Conf
             registerServiceProviders(app)
             cancelLegacyGenerationWork(app)
 
-            // 注入应用级后台作用域，供跨越 ViewModel 生命周期的任务使用
+            
             com.xingshi.ai.common.ApplicationScopeProvider.init(bgScope)
 
-            // 安全检查初始化有先后依赖：词表 → 种子 → 向量库 → 贝叶斯引导，
-            // 同一协程顺序执行，避免 bootstrap 在向量库就绪前把特征缓成 na。
+            
+            
             bgScope.launch {
                 runCatching { ContentFilter.initialize(app) }
                 runCatching { initSecurityData(app) }
@@ -215,11 +215,11 @@ class XingShiApplication : Application(), ImageLoaderFactory, androidx.work.Conf
                 app,
                 com.xingshi.ai.feature.chat.ui.viewmodel.ChannelChatGateway(app)
             )
-            // 页面未创建时插件结果仍有应用级发送口：视觉结论不依赖聊天页存在
+            
             PluginFramework.manager()?.bindApplicationEntry(
                 com.xingshi.ai.feature.chat.ui.viewmodel.ApplicationChatEntry(app)
             )
-            // 入站轮次的唯一消费者固定在应用作用域：未打开聊天页也能消费并回传原联系人
+            
             com.xingshi.ai.feature.chat.ui.viewmodel.InboundTurnDispatcher.init(app)
         }
 
@@ -232,8 +232,8 @@ class XingShiApplication : Application(), ImageLoaderFactory, androidx.work.Conf
         }
 
         private fun autoBackupDatabase(app: Application) {
-            // 备份涉及文件 IO，已从 AppDatabase.buildDatabase 主路径移除，
-            // 在此异步执行，不阻塞首屏渲染。同时顺带清理过期备份。
+            
+            
             runCatching { AppDatabase.autoBackupIfNeeded(app.applicationContext) }
             runCatching { AppDatabase.clearOldBackups(app.applicationContext) }
         }
@@ -257,8 +257,8 @@ class XingShiApplication : Application(), ImageLoaderFactory, androidx.work.Conf
         }
 
         internal fun registerServiceProviders(app: Application) {
-            // ── Repository 单例注册 ──
-            // 统一 Repository 获取方式，供 QQ Bot 等跨模块消费者通过 ServiceRegistry 获取。
+            
+            
             ServiceRegistry.registerSingleton(CompanionRepository::class.java) {
                 CompanionRepository(AppDatabase.getDatabase(app).companionDao())
             }
@@ -269,7 +269,7 @@ class XingShiApplication : Application(), ImageLoaderFactory, androidx.work.Conf
                 UserRepository(app)
             }
 
-            // ── 跨 feature 服务接口注册 ──
+            
             ServiceRegistry.registerSingleton(UserProfileProvider::class.java) {
                 com.xingshi.ai.feature.profile.UserProfileProviderImpl(app)
             }
@@ -295,7 +295,7 @@ class XingShiApplication : Application(), ImageLoaderFactory, androidx.work.Conf
         }
 
         private fun applyStoredLanguage(app: Application) {
-            // 语言映射唯一实现在主题框架内，宿主不再维护另一套语言表
+            
             Locale.setDefault(ThemeRuntime.localeOf(SharedThemePreferences(app).language))
         }
     }

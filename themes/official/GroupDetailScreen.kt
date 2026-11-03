@@ -147,7 +147,7 @@ private fun GroupDetailScreenContent(
     val activeCompanionIds = groupData?.getCompanionIdList() ?: emptyList()
     val activeCompanions = companions.filter { activeCompanionIds.contains(it.id) }
 
-    // 图片选择器
+    
     val imagePicker = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
     ) { uri: Uri? ->
@@ -208,7 +208,7 @@ private fun GroupDetailScreenContent(
                 .padding(horizontal = 16.dp, vertical = 16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            // 群头像和名称
+            
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -220,7 +220,7 @@ private fun GroupDetailScreenContent(
                     horizontalAlignment = Alignment.CenterHorizontally,
                     modifier = Modifier.fillMaxWidth()
                 ) {
-                    // 群头像
+                    
                     Box(
                         modifier = Modifier
                             .size(80.dp)
@@ -247,7 +247,7 @@ private fun GroupDetailScreenContent(
                     }
                     Spacer(modifier = Modifier.height(12.dp))
 
-                    // 群名称
+                    
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(8.dp)
@@ -278,7 +278,7 @@ private fun GroupDetailScreenContent(
                 }
             }
 
-            // 群成员列表
+            
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -301,7 +301,7 @@ private fun GroupDetailScreenContent(
                 }
             }
 
-            // 操作列表
+            
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -310,7 +310,7 @@ private fun GroupDetailScreenContent(
                     .padding(16.dp)
             ) {
                 Column {
-                    // 清空聊天记录
+                    
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -334,7 +334,7 @@ private fun GroupDetailScreenContent(
 
                     Spacer(modifier = Modifier.height(8.dp))
 
-                    // 退出群聊
+                    
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -360,7 +360,7 @@ private fun GroupDetailScreenContent(
         }
     }
 
-    // 删除确认对话框
+    
     if (showDeleteDialog) {
         AlertDialog(
             onDismissRequest = { showDeleteDialog = false },
@@ -385,7 +385,7 @@ private fun GroupDetailScreenContent(
         )
     }
 
-    // 编辑群名称对话框
+    
     if (showEditNameDialog) {
         AlertDialog(
             onDismissRequest = { showEditNameDialog = false },

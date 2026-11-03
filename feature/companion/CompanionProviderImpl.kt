@@ -5,10 +5,7 @@ import com.xingshi.ai.database.AppDatabase
 import com.xingshi.ai.database.repository.CompanionRepository
 import com.xingshi.ai.domain.CompanionProvider
 
-/**
- * Adapter that bridges domain CompanionProvider to CompanionRepository.
- * Registered in XingShiApplication via ServiceRegistry.
- */
+ 
 class CompanionProviderImpl(context: Context) : CompanionProvider {
 
     private val appContext = context.applicationContext

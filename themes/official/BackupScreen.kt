@@ -44,12 +44,7 @@ import com.xingshi.ai.theme.framework.ThemePages
 
 import kotlinx.coroutines.flow.first
 
-/**
- * 数据备份与恢复界面。
- *
- * 导出流程：点击导出 → 密码弹窗 → export(password) → 收集加密数据 → SAF 保存文件
- * 导入流程：点击导入 → SAF 选择文件 → 密码弹窗 → import(uri, password)
- */
+ 
 @Composable
 fun BackupScreen(onNavigateBack: () -> Unit) {
     val context = LocalContext.current
@@ -107,8 +102,8 @@ fun BackupScreen(onNavigateBack: () -> Unit) {
                     when (action) {
                         is ThemePageAction.Invoke -> when (action.id) {
                             "export" -> {
-                                // 只有作者页主动导出时才订阅本次结果：官方 fallback 路径不会触发，
-                                // 因而同一次导出只有一个 SAF 承接者；不依赖 host() 是否被求值。
+                                
+                                
                                 pendingPassword = action.payload["password"].orEmpty()
                                 scope.launch {
                                     val bytes = kotlinx.coroutines.withTimeoutOrNull(120_000L) {
@@ -149,12 +144,12 @@ private fun BackupScreenContent(onNavigateBack: () -> Unit) {
     var isVisible by remember { mutableStateOf(false) }
     LaunchedEffect(Unit) { delay(80); isVisible = true }
 
-    // 密码弹窗状态
+    
     var showPasswordDialog by remember { mutableStateOf(false) }
     var passwordMode by remember { mutableStateOf(PasswordMode.EXPORT) }
     var pendingImportUri by remember { mutableStateOf<Uri?>(null) }
 
-    // SAF 导出：收到加密数据后打开保存对话框
+    
     var pendingExportBytes by remember { mutableStateOf<ByteArray?>(null) }
 
     val exportSaveLauncher = rememberLauncherForActivityResult(
@@ -177,7 +172,7 @@ private fun BackupScreenContent(onNavigateBack: () -> Unit) {
         }
     }
 
-    // 收集导出结果 → 打开 SAF
+    
     LaunchedEffect(Unit) {
         viewModel.exportResult.collect { encryptedBytes ->
             pendingExportBytes = encryptedBytes
@@ -185,7 +180,7 @@ private fun BackupScreenContent(onNavigateBack: () -> Unit) {
         }
     }
 
-    // SAF 导入：选择文件
+    
     val importFileLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.OpenDocument()
     ) { uri: Uri? ->
@@ -196,14 +191,14 @@ private fun BackupScreenContent(onNavigateBack: () -> Unit) {
         }
     }
 
-    // 收集导入请求 → 打开 SAF
+    
     LaunchedEffect(Unit) {
         viewModel.importRequest.collect {
             importFileLauncher.launch(arrayOf("application/octet-stream", "*/*"))
         }
     }
 
-    // 密码弹窗
+    
     if (showPasswordDialog) {
         PasswordDialog(
             mode = passwordMode,
@@ -229,7 +224,7 @@ private fun BackupScreenContent(onNavigateBack: () -> Unit) {
         )
     }
 
-    // 结果 Snackbar
+    
     val snackbarHostState = remember { SnackbarHostState() }
     LaunchedEffect(uiState) {
         when (val s = uiState) {
@@ -269,7 +264,7 @@ private fun BackupScreenContent(onNavigateBack: () -> Unit) {
         ) {
             Spacer(modifier = Modifier.height(16.dp))
 
-            // 导出卡片
+            
             AnimatedVisibility(
                 visible = isVisible,
                 enter = fadeIn(tween(350)) + slideInVertically(tween(350)) { it / 4 }
@@ -290,7 +285,7 @@ private fun BackupScreenContent(onNavigateBack: () -> Unit) {
 
             Spacer(modifier = Modifier.height(12.dp))
 
-            // 导入卡片
+            
             AnimatedVisibility(
                 visible = isVisible,
                 enter = fadeIn(tween(400, delayMillis = 80)) + slideInVertically(tween(400, delayMillis = 80)) { it / 4 }
@@ -308,7 +303,7 @@ private fun BackupScreenContent(onNavigateBack: () -> Unit) {
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            // 说明文字
+            
             AnimatedVisibility(
                 visible = isVisible,
                 enter = fadeIn(tween(500, delayMillis = 160))
@@ -334,9 +329,9 @@ private fun BackupScreenContent(onNavigateBack: () -> Unit) {
     }
 }
 
-// ============================================================================
-// 密码弹窗
-// ============================================================================
+
+
+
 
 enum class PasswordMode { EXPORT, IMPORT }
 
@@ -425,9 +420,9 @@ private fun PasswordDialog(
     )
 }
 
-// ============================================================================
-// 功能卡片
-// ============================================================================
+
+
+
 
 @Composable
 private fun BackupCard(
@@ -474,9 +469,9 @@ private fun BackupCard(
     }
 }
 
-// ============================================================================
-// 工具函数
-// ============================================================================
+
+
+
 
 private fun dateString(): String {
     val cal = java.util.Calendar.getInstance()

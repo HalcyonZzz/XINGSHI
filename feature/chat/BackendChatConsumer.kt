@@ -24,7 +24,7 @@ import kotlinx.serialization.json.*
 import java.time.Instant
 import java.util.UUID
 
-/** Owns accepted input handoffs and the single account inbox poller, independently of pages. */
+ 
 class BackendChatConsumer(private val app: Application, private val http: BackendHttpClient,
     private val sessions: BackendSessionStore, private val groups: BackendGroupGateway) {
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
@@ -53,6 +53,7 @@ class BackendChatConsumer(private val app: Application, private val http: Backen
         mutableNextActions.value = if (nextAction.isBlank()) mutableNextActions.value - id else mutableNextActions.value + (id to nextAction)
     }
     fun wake() { signal.trySend(Unit) }
+    private fun responseFinalizer(companionId: Long) = AiResponseFinalizer(companionId, ChatRepository(db.chatMessageDao()), AppSettingsStore(app), MutableStateFlow(""), MutableStateFlow(false), app)
     fun stop() { stopped = true; scope.cancel(); signal.close() }
     suspend fun stopAndJoin() { stop(); scope.coroutineContext[Job]?.join() }
     suspend fun pauseCompanion(companionId: Long, operation: String) = requests.withLock {
@@ -107,8 +108,9 @@ class BackendChatConsumer(private val app: Application, private val http: Backen
             }
             val clientId = preparing?.clientMessageId ?: UUID.randomUUID().toString()
             val sourceId = preparing?.sourceEventId ?: UUID.randomUUID().toString()
+            val occurredAt = inputMonitor.occurredAt(db.chatMessageDao().getMessageById(localId)?.timestamp ?: turn.capturedAt)
             val payload = buildJsonObject {
-                put("client_message_id", clientId); put("source_event_id", sourceId); put("content", turn.text)
+                put("client_message_id", clientId); put("source_event_id", sourceId); put("content", turn.text); put("occurred_at", occurredAt)
                 if (preparing?.encryptedRoute?.isNotBlank() == true || turn.request != null) put("reply_route_ref", clientId)
                 if (turn.inputKind != ConversationIntake.InputKind.TEXT) put("media", buildJsonObject {
                     put("input_mode", turn.inputKind.name); put("transcript", turn.text)
@@ -129,7 +131,8 @@ class BackendChatConsumer(private val app: Application, private val http: Backen
     suspend fun prepareImage(companionId: Long, localId: Long, text: String, image: String, request: ChannelRequestRef?) {
         checkActive()
         val client = UUID.randomUUID().toString(); val source = UUID.randomUUID().toString()
-        val payload = buildJsonObject { put("client_message_id", client); put("source_event_id", source); put("content", text); put("preparation_image", image)
+        val occurredAt = inputMonitor.occurredAt(db.chatMessageDao().getMessageById(localId)?.timestamp ?: System.currentTimeMillis())
+        val payload = buildJsonObject { put("client_message_id", client); put("source_event_id", source); put("content", text); put("occurred_at", occurredAt); put("preparation_image", image)
             if (request != null) put("reply_route_ref", client) }
         db.backendHandoffDao().insertInput(BackendInputHandoff(localId, companionId, client, source, ChatMessageCrypto.encrypt(payload.toString()),
             request?.let { ChatMessageCrypto.encrypt(routeJson(it).toString()) }.orEmpty(), state = "PREPARING"))
@@ -167,7 +170,7 @@ class BackendChatConsumer(private val app: Application, private val http: Backen
                     delivered = true
                 } catch (failure: Exception) {
                     if (failure is CancellationException || failure is StaleBackendSession) throw failure
-                    // Do not acknowledge this item; stable cursor still allows later independent items.
+                    
                 }
             }
             cursor = page.text("next_cursor").ifBlank { null }
@@ -187,7 +190,7 @@ class BackendChatConsumer(private val app: Application, private val http: Backen
             val result = inputMonitor.advance(chatPath(link), body, progress)
             checkActive()
             val current = db.backendHandoffDao().input(input.localMessageId) ?: return
-            // DB 只存稳定 code（可再次解析），不持久化最终中文；语言切换由页面 themeText 重渲染。
+            
             val presentation = result.failure?.let(ChatFailureDisplay::present)
             db.backendHandoffDao().updateInput(current.copy(humanMessageId = result.humanMessageId,
                 generationId = result.generationId, state = result.state, error = presentation?.code?.ifBlank { null }))
@@ -209,8 +212,8 @@ class BackendChatConsumer(private val app: Application, private val http: Backen
             if (failure is CancellationException || failure is StaleBackendSession) throw failure
             if (failure is BackendHttpException && failure.status == 401) throw failure
             val current = db.backendHandoffDao().input(input.localMessageId) ?: return
-            // A 4xx answer settles this attempt as a rejection; a 5xx/408/transport failure leaves the
-            // acceptance question open and may only be read back (and idempotently confirmed) next cycle.
+            
+            
             val httpStatus = (failure as? BackendHttpException)?.status
             if (httpStatus != null && httpStatus in 400..499 && httpStatus !in setOf(408, 429) || httpStatus == 429) {
                 val code = (failure as BackendHttpException).code
@@ -226,7 +229,7 @@ class BackendChatConsumer(private val app: Application, private val http: Backen
         }
     }
 
-    /** Old handoffs may still carry the deleted provider/model override; drop it at the wire boundary. */
+     
     private fun withoutLegacyRoute(payload: JsonObject): JsonObject =
         if (payload.containsKey("provider") || payload.containsKey("model"))
             JsonObject(payload.filterKeys { it != "provider" && it != "model" }) else payload
@@ -246,11 +249,11 @@ class BackendChatConsumer(private val app: Application, private val http: Backen
                     .save(groupId, link.companionId, messageId, item.text("content"), createdAt, item.toString())
                 db.backendHandoffDao().receipt(messageId) ?: error("正式群回复未持久保存")
             } else {
-                val finalizer = AiResponseFinalizer(link.companionId, ChatRepository(db.chatMessageDao()), AppSettingsStore(app), MutableStateFlow(""), MutableStateFlow(false), app)
+                val finalizer = responseFinalizer(link.companionId)
                 finalizer.saveFormal(messageId, item.text("content"), createdAt, item.obj("media_input").text("call_id").takeIf { it.isNotBlank() }?.let { "call:$it" }.orEmpty(), item.toString())
             }
         }
-        // Batch coverage is authoritative: one reply may finish several accepted inputs.
+        
         db.withTransaction {
             item.array("input_message_ids").forEach { id -> db.backendHandoffDao().inputForHuman(id.jsonPrimitive.content)?.let { db.backendHandoffDao().updateInput(it.copy(state = "COMPLETED")) } }
         }
@@ -298,6 +301,14 @@ class BackendChatConsumer(private val app: Application, private val http: Backen
                 else -> ChatStatusDisplay.CHANNEL_PENDING
             })
             return
+        }
+        val inputModes = inputs.mapNotNull { input ->
+            runCatching {
+                Json.parseToJsonElement(ChatMessageCrypto.decrypt(input.encryptedPayload)).jsonObject.obj("media").text("input_mode")
+            }.getOrNull()
+        }
+        if (AutoSpeechReply.speaksReply(inputModes)) {
+            responseFinalizer(receipt.companionId).attachAutoSpeech(receipt.localMessageId, inputModes)?.let { status(receipt.companionId, it) }
         }
         db.backendHandoffDao().updateReceipt(receipt.copy(state = "DONE"))
     }

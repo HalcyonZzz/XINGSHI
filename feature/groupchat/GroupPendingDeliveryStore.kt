@@ -1,11 +1,9 @@
 package com.xingshi.ai.feature.groupchat
 
-import android.content.Context
+import android.content.SharedPreferences
 
-/** 群投递未受理责任的重启恢复：只存身份与原目标，快照重试时从本地库重建。 */
-object GroupPendingDeliveryStore {
-
-    private const val PREFS = "group_pending_deliveries"
+ 
+class GroupPendingDeliveryStore(private val preferences: SharedPreferences) {
 
     data class Pending(
         val groupId: Long,
@@ -16,8 +14,8 @@ object GroupPendingDeliveryStore {
         val snapshot: com.xingshi.ai.domain.GroupConversationSnapshot? = null
     )
 
-    fun save(context: Context, pending: Pending) {
-        check(context.applicationContext.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit()
+    fun save(pending: Pending) {
+        check(preferences.edit()
             .putString(
                 pending.messageId.toString(),
                 listOf(
@@ -32,27 +30,26 @@ object GroupPendingDeliveryStore {
             .commit()) { "无法保留群投递责任" }
     }
 
-    fun remove(context: Context, messageId: Long) {
-        context.applicationContext.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit()
+    fun remove(messageId: Long) {
+        preferences.edit()
             .remove(messageId.toString())
             .commit()
     }
 
-    fun load(context: Context): List<Pending> =
-        context.applicationContext.getSharedPreferences(PREFS, Context.MODE_PRIVATE).all.values.mapNotNull { value ->
-            val parts = (value as? String)?.split("|") ?: return@mapNotNull null
-            if (parts.size < 5) return@mapNotNull null
-            runCatching {
-                Pending(
-                    groupId = parts[0].toLong(),
-                    messageId = parts[1].toLong(),
-                    targets = parts[2].split(",").mapNotNull { it.toLongOrNull() }.toSet(),
-                    mentionedIds = parts[3].split(",").mapNotNull { it.toLongOrNull() }.toSet(),
-                    everyone = parts[4].toBoolean(),
-                    snapshot = parts.getOrNull(5)?.takeIf { it.isNotBlank() }?.let(::decodeSnapshot)
-                )
-            }.getOrNull()
-        }
+    fun load(): List<Pending> = preferences.all.values.mapNotNull { value ->
+        val parts = (value as? String)?.split("|") ?: return@mapNotNull null
+        if (parts.size < 5) return@mapNotNull null
+        runCatching {
+            Pending(
+                groupId = parts[0].toLong(),
+                messageId = parts[1].toLong(),
+                targets = parts[2].split(",").mapNotNull { it.toLongOrNull() }.toSet(),
+                mentionedIds = parts[3].split(",").mapNotNull { it.toLongOrNull() }.toSet(),
+                everyone = parts[4].toBoolean(),
+                snapshot = parts.getOrNull(5)?.takeIf { it.isNotBlank() }?.let(::decodeSnapshot)
+            )
+        }.getOrNull()
+    }
 
     private fun encodeSnapshot(snapshot: com.xingshi.ai.domain.GroupConversationSnapshot): String {
         val value = org.json.JSONObject().put("id", snapshot.groupId).put("name", snapshot.groupName).put("created", snapshot.createdAt)
@@ -64,6 +61,7 @@ object GroupPendingDeliveryStore {
                 .put("authorStableId", message.authorStableId).put("authorInstanceId", message.authorInstanceId)) } })
         return com.xingshi.ai.database.repository.ChatMessageCrypto.encrypt(value.toString())
     }
+
     private fun decodeSnapshot(encoded: String): com.xingshi.ai.domain.GroupConversationSnapshot {
         val value = org.json.JSONObject(com.xingshi.ai.database.repository.ChatMessageCrypto.decrypt(encoded))
         val members = value.getJSONArray("members")
@@ -75,5 +73,9 @@ object GroupPendingDeliveryStore {
                 com.xingshi.ai.domain.GroupHistoryMessage(item.getLong("id"), if (item.isNull("companion")) null else item.getLong("companion"), item.getString("name"), item.getString("text"), item.getLong("at"), item.getString("type"), item.getString("path"), (0 until mentions.length()).map { mentions.getLong(it) }, item.optBoolean("live"),
                     item.optString("authorStableId").takeIf { it.isNotBlank() && it != "null" }, item.optString("authorInstanceId").takeIf { it.isNotBlank() && it != "null" })
             } }, if (value.isNull("source")) null else value.getLong("source"))
+    }
+
+    companion object {
+        const val PREFS = "group_pending_deliveries"
     }
 }

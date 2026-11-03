@@ -18,10 +18,7 @@ import androidx.compose.ui.unit.sp
 import com.xingshi.ai.plugins.PluginFramework
 import com.xingshi.ai.theme.framework.themeText
 
-/**
- * 通用通道插件页面外壳：微信/QQ 的绑定、设置页面内容完全由已安装插件提供，
- * 主题只负责入口、返回与“未安装”提示，不再内置平台专属页面。
- */
+ 
 @Composable
 fun ChannelPluginSetupScreen(
     pluginId: String,

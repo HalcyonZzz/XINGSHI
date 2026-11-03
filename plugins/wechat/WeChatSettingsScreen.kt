@@ -114,7 +114,7 @@ private fun WeChatSettingsScreenContent(
                 .padding(padding)
                 .verticalScroll(rememberScrollState())
         ) {
-            // Status Card
+            
             WeChatStatusCard(
                 isLoggedIn = uiState.isLoggedIn,
                 accountId = uiState.account?.ilinkBotId,
@@ -126,7 +126,7 @@ private fun WeChatSettingsScreenContent(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // Settings Items
+            
             Text(
                 text = themeText("ui_we_chat_settings_screen_03"),
                 fontSize = 14.sp,
@@ -290,7 +290,7 @@ private fun WeChatSettingsScreenContent(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // Info
+            
             Text(
                 text = themeText("ui_we_chat_settings_screen_23"),
                 fontSize = 14.sp,

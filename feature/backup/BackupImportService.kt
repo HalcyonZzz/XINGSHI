@@ -11,13 +11,7 @@ import com.xingshi.ai.feature.backup.model.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
-/**
- * 数据导入服务 — 清空现有数据，将 [BackupData] 写入数据库并重新加密。
- *
- * 导入策略：替换模式 — 先清空所有相关表，再按序插入。
- * 清空顺序（满足 FK 约束）：group_messages → chat_messages → memory_entries → temp_memory → token_usage → chat_groups → companions
- * 插入顺序（满足 FK 约束）：companions → chat_groups → chat_messages → group_messages → memory_entries → temp_memory → token_usage
- */
+ 
 class BackupImportService(private val context: Context) {
 
     private val db = AppDatabase.getDatabase(context)
@@ -25,17 +19,17 @@ class BackupImportService(private val context: Context) {
 
     suspend fun import(data: BackupData): Result<Unit> = withContext(Dispatchers.IO) {
         runCatching {
-            // 整个清空+插入序列包在单一 Room 事务里：
-            // 全程置于事务中：中途失败会留下半清半填的库，事务保证要么全成功、要么全回滚。
+            
+            
             db.withTransaction {
-                // 1. 清空（先删子表，再删父表）
+                
                 db.groupMessageDao().let { dao ->
                     data.chatGroups.forEach { dao.deleteMessagesForGroup(it.id) }
                 }
                 db.chatMessageDao().let { dao ->
                     data.companions.forEach { dao.deleteMessagesForCompanion(it.id) }
                 }
-                // 兜底清空（处理不在导入数据中的残留记录）
+                
                 db.memoryDao().deleteAllMemories(deviceId)
                 db.memoryDao().deleteAllTempMemories(deviceId)
                 db.tokenUsageDao().deleteAll(deviceId)
@@ -48,7 +42,7 @@ class BackupImportService(private val context: Context) {
                 db.chatGroupDao().getAllGroupsSync().forEach { db.chatGroupDao().deleteGroup(it) }
                 db.companionDao().getAllCompanionsSync().forEach { db.companionDao().deleteCompanion(it) }
 
-                // 2. 插入（先插父表，再插子表）
+                
                 data.companions.forEach { s ->
                     db.companionDao().insertCompanion(
                         CompanionEntity(
@@ -134,7 +128,7 @@ class BackupImportService(private val context: Context) {
         }
     }
 
-    /** 安全枚举解析：无效值回退到默认 */
+     
     private inline fun <reified T : Enum<T>> safeEnum(name: String): T {
         return try { enumValueOf<T>(name) }
         catch (_: Exception) { enumValues<T>().first() }

@@ -24,7 +24,7 @@ class ProfileViewModel(application: Application) : AndroidViewModel(application)
         runCatching { checkNotNull(gateway) { "请先登录" }.logout() }
             .onFailure { error.value = it.message ?: "退出失败" }
     } }
-    // 延迟获取，避免在 ServiceRegistry 初始化完成前取实例导致启动闪退
+    
     private val repository by lazy { ServiceRegistry.getOrThrow(UserRepository::class.java) }
 
     val userName: StateFlow<String> by lazy { repository.userName }

@@ -4,7 +4,7 @@
   "author": "星识",
   "description": "会话中发送图片后自动走公开工具循环识别图片内容并汇报",
   "icon": "Image",
-  "version": "1.0.7",
+  "version": "1.0.9",
   "entry": "com.xingshi.ai.plugins.samplevision.SampleVisionPlugin",
   "packageUrl": "",
   "sha256": "",

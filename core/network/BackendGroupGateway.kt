@@ -18,7 +18,7 @@ interface BackendGroupIdentity {
     fun viewerName(): String
 }
 
-/** 原源、成员范围及确认点须先耐久登记，失败重放继续使用原身份。 */
+ 
 interface BackendGroupHandoffs {
     fun read(key: String): String?
     fun write(values: Map<String, String>)
@@ -36,7 +36,7 @@ private class PreferenceGroupHandoffs(context: Context) : BackendGroupHandoffs {
     }
 }
 
-/** Scene identity and incremental acknowledgements use the existing server scene owner. */
+ 
 class BackendGroupGateway(
     private val http: BackendHttpClient, private val identities: BackendGroupIdentity,
     private val handoffs: BackendGroupHandoffs,
@@ -85,7 +85,7 @@ class BackendGroupGateway(
         val previousMembers = handoffs.read("active-members:$ref")?.split('|').orEmpty()
         val cutoff = snapshot.messages.filter { it.id != snapshot.sourceMessageId }.maxOfOrNull { it.id } ?: 0L
         val changes = mutableMapOf("active-members:$ref" to memberIds.joinToString("|") { it.instanceId })
-        // Keep only the original public author identity, separate from active membership.
+        
         snapshot.members.forEachIndexed { index, member ->
             if (rememberedAuthor(ref, member.companionId) == null) changes["author:$ref:${member.companionId}"] = encrypt(buildJsonObject {
                 put("stable_id", identities.viewerId()); put("instance_id", memberIds[index].instanceId)

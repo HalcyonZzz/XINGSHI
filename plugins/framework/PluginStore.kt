@@ -66,7 +66,7 @@ class PluginStore(root: File, private val openSource: (String) -> InputStream = 
 
     fun packageDir(id: String): File = File(rootDir, "packages/${PluginIds.require(id)}")
 
-    // 账目是「插件是否已安装」的唯一依据：读不能看到写了一半的索引，读改写之间也必须互斥
+    
     private val indexLock = Any()
 
     fun installed(): List<InstalledPluginRecord> = synchronized(indexLock) {
@@ -171,7 +171,7 @@ class PluginStore(root: File, private val openSource: (String) -> InputStream = 
     }
 
     private fun clearPendingFor(pluginId: String) {
-        // 文件名是「会话ID-插件ID.json」，按后缀匹配会把 my-echo 的待发材料一起删掉，所以按记录里的插件标识比对
+        
         pending().filter { it.pluginId == pluginId }
             .forEach { clearPending(it.companionId, it.pluginId) }
     }
@@ -203,7 +203,7 @@ class PluginStore(root: File, private val openSource: (String) -> InputStream = 
         return target
     }
 
-    // 先原子占名再写入：同名（含同一毫秒内）的并发写入不会互相覆盖
+    
     private fun allocate(directory: File, base: String, suffix: String): File {
         var index = 0
         while (index < 1000) {
@@ -222,7 +222,7 @@ class PluginStore(root: File, private val openSource: (String) -> InputStream = 
     private fun write(records: List<InstalledPluginRecord>) {
         rootDir.mkdirs()
         val payload = format.encodeToString(ListSerializer(InstalledPluginRecord.serializer()), records)
-        // 先写临时文件再改名：写到一半被打断也不会留下残缺索引（残缺索引会让所有插件都看起来没装）
+        
         val tmp = File(rootDir, "${indexFile.name}.tmp")
         tmp.writeText(payload)
         if (!tmp.renameTo(indexFile)) {

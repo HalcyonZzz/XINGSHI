@@ -31,7 +31,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 
-/** 微信聊天通道插件：能力只在安装后加载，宿主不内置平台实现。 */
+ 
 class WeChatPlugin : XingShiPlugin {
     override val id: String = "wechat"
     override val name: String = "微信"
@@ -54,7 +54,7 @@ class WeChatPlugin : XingShiPlugin {
     override suspend fun run(request: PluginRequest, runtime: PluginRuntime): PluginReport =
         PluginReport.Failure("微信是聊天通道插件，不提供一次性工具执行")
 
-    /** 仅卸载时调用：清除本插件登录材料、令牌与联系人映射，宿主聊天原文/附件不动。 */
+     
     override fun cleanup() {
         val ctx = channel?.appContext ?: return
         WeChatServiceLocator.tokenStore(ctx).clearAll()
@@ -106,12 +106,12 @@ private class WeChatChannel : XingShiChannel {
             store.accountFlow.collect { account ->
                 val nextAccountId = account?.accountId.orEmpty()
                 if (nextAccountId != currentAccountId) {
-                    // 退出/换账号：先撤销旧账号尚未回复的路由，旧请求不能由新账号发起平台发送
+                    
                     host.revokeReplyRoutes(currentAccountId.takeIf { it.isNotBlank() })
                     currentAccountId = nextAccountId
                 }
                 if (account == null) {
-                    // 退出登录：旧仓库的 processScope 已被取消，下次登录必须重建实例
+                    
                     stopPolling()
                     runCatching { repository?.destroy() }
                     repository = null
@@ -132,7 +132,7 @@ private class WeChatChannel : XingShiChannel {
     private fun installSinks(host: ChannelHost, ctx: Context, store: WeChatTokenStore) {
         val repo = repository ?: return
         val mapping = WeChatUserMappingManager(store, CompanionRepository(AppDatabase.getDatabase(ctx).companionDao()))
-        // 入站交给宿主统一对话入口；插件只保留路由与去重，不写库。
+        
         repo.inboundSink = inbound@{ message ->
             val userId = message.fromUserId ?: return@inbound
             val text = repo.extractText(message)

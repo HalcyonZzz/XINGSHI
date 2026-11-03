@@ -32,9 +32,9 @@ open class CompanionKeepAliveService : Service() {
     private var timedOut = false
     private val serviceScope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
     private var languageJob: Job? = null
-    // 用户主动 stop 时不自重启：原 onDestroy 在非超时路径无条件 start()，
-    // 导致用户无法停止服务。增加 stopRequested 标记，stop(context) 时置 true，
-    // onDestroy 检查此标记决定是否自重启。
+    
+    
+    
     @Volatile private var stopRequested = false
     private val handler = Handler(Looper.getMainLooper())
     private val wakeLockRunnable = object : Runnable {
@@ -61,18 +61,18 @@ open class CompanionKeepAliveService : Service() {
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        // 先满足前台服务合同，再处理 stop 标记；顺序反过来会触发 FGS 启动超时。
+        
         val notification = createNotification()
         startForeground(NOTIFICATION_ID, notification)
 
-        // 接收 stop 标记：stop(context) 用 startService 把标记送到 onStartCommand，
-        // 服务在 onDestroy 时据此不自重启（stopService 不会投递 extra）。
+        
+        
         if (intent?.getBooleanExtra(EXTRA_STOP_REQUESTED, false) == true) {
             stopRequested = true
             try {
                 stopForeground(STOP_FOREGROUND_REMOVE)
             } catch (_: Exception) {
-                // ignore cleanup errors
+                
             }
             stopSelf(startId)
             return START_NOT_STICKY
@@ -87,7 +87,7 @@ open class CompanionKeepAliveService : Service() {
         handleTimeout()
     }
 
-    /** Android 15 前台服务类型超时回调（部分 ROM 走这个重载）。 */
+     
     @androidx.annotation.RequiresApi(35)
     override fun onTimeout(startId: Int, fgsType: Int) {
         super.onTimeout(startId, fgsType)
@@ -96,12 +96,12 @@ open class CompanionKeepAliveService : Service() {
 
     private fun handleTimeout() {
         timedOut = true
-        // Android 15 前台服务 6 小时超时：必须先 stopForeground 再 stopSelf，
-        // 否则 ColorOS / OriginOS 等激进 ROM 可能抛出异常或直接拒绝重启。
+        
+        
         try {
             stopForeground(STOP_FOREGROUND_REMOVE)
         } catch (_: Exception) {
-            // ignore cleanup errors
+            
         }
         stopSelf()
     }
@@ -114,8 +114,8 @@ open class CompanionKeepAliveService : Service() {
         releaseWakeLock()
         super.onDestroy()
 
-        // 仅在非用户主动停止、非超时的情况下自重启。
-        // 用户主动 stop（stopRequested=true）则不自重启，尊重用户意图。
+        
+        
         if (!timedOut && !stopRequested) {
             start(applicationContext)
         }
@@ -123,7 +123,7 @@ open class CompanionKeepAliveService : Service() {
 
     override fun onTaskRemoved(rootIntent: Intent?) {
         super.onTaskRemoved(rootIntent)
-        // 任务移除时若用户已主动停止，也不自重启
+        
         if (!stopRequested) {
             start(applicationContext)
         }
@@ -137,8 +137,8 @@ open class CompanionKeepAliveService : Service() {
             "XINGSHI::CompanionKeepAlive"
         ).apply {
             setReferenceCounted(false)
-            // wakeLock 超时 10 分钟，续期间隔 5 分钟。若 Doze 延迟 postDelayed，
-            // 续期可能晚于超时。改超时为 15 分钟，留足余量（续期 5 分钟 < 超时 15 分钟 / 2）。
+            
+            
             acquire(15 * 60 * 1000L)
         }
     }
@@ -208,21 +208,18 @@ open class CompanionKeepAliveService : Service() {
             }
         }
 
-        /**
-         * 安全启动前台保活服务：捕获启动失败（如后台限制），不抛异常。
-         * 供 JobScheduler 兜底保活调用。
-         */
+         
         fun safeStart(context: Context) {
             try {
                 start(context)
             } catch (e: Exception) {
-                // OriginOS/IQOO 等可能限制后台启动服务，忽略错误
+                
             }
         }
 
         fun stop(context: Context) {
-            // stopService 不会把 extra 传给 onStartCommand，必须用 startService 投递停止标记，
-            // 否则服务不知道是用户主动停止，onDestroy 还会自重启。
+            
+            
             val intent = Intent().setClassName(context.packageName, SHELL_SERVICE_CLASS)
                 .putExtra(EXTRA_STOP_REQUESTED, true)
             try {
@@ -232,7 +229,7 @@ open class CompanionKeepAliveService : Service() {
                     context.startService(intent)
                 }
             } catch (e: Exception) {
-                // 后台启动受限时退回 stopService，至少先停掉当前实例。
+                
                 runCatching { context.stopService(Intent().setClassName(context.packageName, SHELL_SERVICE_CLASS)) }
             }
         }

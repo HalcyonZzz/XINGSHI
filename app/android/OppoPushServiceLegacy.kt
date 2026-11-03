@@ -6,11 +6,7 @@ import android.os.Bundle
 import com.xingshi.ai.common.SecureLog
 import com.xingshi.ai.push.dispatch.PushMessageDispatcher
 
-/**
- * OPPO 推送兼容服务（ColorOS 旧版本）。
- *
- * 与 [OppoPushService] 逻辑一致，仅用于接收旧版 ColorOS 的 action。
- */
+ 
 class OppoPushServiceLegacy : Service() {
 
     companion object {

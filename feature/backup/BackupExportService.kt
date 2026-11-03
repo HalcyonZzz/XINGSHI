@@ -11,9 +11,7 @@ import com.xingshi.ai.feature.backup.model.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
-/**
- * 数据导出服务 — 读取全部用户数据，解密后组装为 [BackupData]。
- */
+ 
 class BackupExportService(private val context: Context) {
 
     private val db = AppDatabase.getDatabase(context)
@@ -28,13 +26,13 @@ class BackupExportService(private val context: Context) {
         val tempMemories = db.memoryDao().getAllTempMemoriesSync(deviceId).map { it.toSnapshot() }
         val tokenUsages = db.tokenUsageDao().getAllUsageSync(deviceId).map { it.toSnapshot() }
 
-        // 读取每条 companion 的聊天消息（已解密）
+        
         for (c in companions) {
             val raw = db.chatMessageDao().getMessagesForCompanionSync(c.id)
             chatMessages.addAll(raw.map { ChatMessageCrypto.decryptFromStorage(it).toSnapshot() })
         }
 
-        // 读取每个 group 的群聊消息（已解密）
+        
         for (g in chatGroups) {
             val raw = db.groupMessageDao().getMessagesForGroupSync(g.id)
             groupMessages.addAll(raw.map { ChatMessageCrypto.decryptFromStorage(it).toSnapshot() })
@@ -55,7 +53,7 @@ class BackupExportService(private val context: Context) {
     }
 }
 
-// --- Entity → Snapshot 映射扩展 ---
+
 
 private fun com.xingshi.ai.database.model.CompanionEntity.toSnapshot() = CompanionSnapshot(
     id = id, name = name, avatarUrl = avatarUrl, age = age,

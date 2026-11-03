@@ -39,6 +39,8 @@
     <string name="chat_send">Send</string>
     <string name="close">Close</string>
     <string name="companion_delete">Delete</string>
+    <string name="ui_companion_delete_pending">Deleting this companion. Remove local data after confirmation.</string>
+    <string name="ui_companion_delete_failed">Deletion is not confirmed yet. Reconnect and try again.</string>
     <string name="companion_group_chat">Group Chat</string>
     <string name="companion_no_companions">No smart assistants yet</string>
     <string name="confirm_delete">Confirm Delete</string>

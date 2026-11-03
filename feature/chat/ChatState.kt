@@ -4,11 +4,7 @@ import androidx.compose.runtime.Stable
 import com.xingshi.ai.database.model.ChatMessage
 import com.xingshi.ai.database.model.CompanionEntity
 
-/**
- * ChatViewModel 打包状态 — 统一替换零散 StateFlow。
- *
- * 控制论: 单点状态降低扰动传播链，combine() 保证一致性。
- */
+ 
 @Stable
 data class ChatState(
     val companionData: CompanionEntity? = null,
@@ -23,8 +19,8 @@ data class ChatState(
     val queueDepth: Int = 0,
     val hasMoreMessages: Boolean = false,
     val isLoadingMore: Boolean = false,
-    /** 流水线阶段: IDLE → VALIDATE → CLASSIFY → ENCRYPT → SEND → CONFIRM → DONE */
+     
     val pipelineStage: String = "IDLE",
-    /** 流水线错误信息 */
+     
     val pipelineError: String? = null
 )

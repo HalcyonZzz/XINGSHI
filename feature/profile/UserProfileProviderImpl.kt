@@ -10,18 +10,15 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 
-/**
- * Adapter that bridges domain UserProfileProvider to UserRepository.
- * Registered in XingShiApplication via ServiceRegistry.
- */
+ 
 class UserProfileProviderImpl(context: Context) : UserProfileProvider {
 
-    // 复用 Application 已注册的仓储实例：自带第二份内存状态会让设置页与订阅者各说各话。
+    
     private val repository: UserRepository by lazy {
         ServiceRegistry.getOrThrow(UserRepository::class.java)
     }
 
-    // 用于订阅 StateFlow 的内部作用域，生命周期与 Application 一致
+    
     private val observerScope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
 
     override fun getUserId(): String = ServiceRegistry.get(com.xingshi.ai.domain.BackendAccountGateway::class.java)?.state?.value?.userId.orEmpty()

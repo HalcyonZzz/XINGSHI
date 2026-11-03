@@ -7,17 +7,26 @@ import java.io.File
 import java.net.HttpURLConnection
 import java.net.URL
 import java.nio.charset.StandardCharsets
+import java.util.Base64
+import java.util.concurrent.atomic.AtomicBoolean
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CoroutineStart
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.awaitCancellation
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.ensureActive
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.suspendCancellableCoroutine
+import kotlinx.coroutines.withContext
 
-/**
- * 真实按帧读图：把本轮图片本体以 data URL 提交到视觉接口，返回结构化画面描述。
- * 不依赖固定示例结果、不拿文件名代替识别；不承担自动对话交接。
- */
+ 
 internal object VisionAnalysisClient {
 
     private const val CONNECT_TIMEOUT_MS = 20_000
     private const val READ_TIMEOUT_MS = 60_000
 
-    suspend fun analyze(request: VisionAnalysisRequest): VisionAnalysisResult {
+    suspend fun analyze(request: VisionAnalysisRequest, readTimeoutMs: Int = READ_TIMEOUT_MS): VisionAnalysisResult {
         if (request.endpoint.isBlank()) return VisionAnalysisResult.Failure("视觉接口地址为空", false)
         val endpoint = chatEndpoint(request.endpoint)
         if (request.apiKey.isBlank()) return VisionAnalysisResult.Failure("视觉 API Key 为空", false)
@@ -29,7 +38,7 @@ internal object VisionAnalysisClient {
             "webp" -> "image/webp"
             else -> "image/jpeg"
         }
-        val base64 = android.util.Base64.encodeToString(file.readBytes(), android.util.Base64.NO_WRAP)
+        val base64 = Base64.getEncoder().encodeToString(file.readBytes())
         val payload = buildString {
             append("{\"model\":\"").append(escape(request.model)).append("\",")
             append("\"messages\":[{\"role\":\"user\",\"content\":[")
@@ -37,38 +46,100 @@ internal object VisionAnalysisClient {
             append("{\"type\":\"image_url\",\"image_url\":{\"url\":\"data:")
                 .append(mime).append(";base64,").append(base64).append("\"}}]}]}")
         }
-        var connection: HttpURLConnection? = null
-        return try {
-            connection = (URL(endpoint).openConnection() as HttpURLConnection).apply {
-                requestMethod = "POST"
-                connectTimeout = CONNECT_TIMEOUT_MS
-                readTimeout = READ_TIMEOUT_MS
-                doOutput = true
-                setRequestProperty("Authorization", "Bearer ${request.apiKey.trim()}")
-                setRequestProperty("Content-Type", "application/json; charset=utf-8")
-            }
-            connection.outputStream.use { it.write(payload.toByteArray(StandardCharsets.UTF_8)) }
-            val code = connection.responseCode
-            val body = (if (code in 200..299) connection.inputStream else connection.errorStream)
-                ?.bufferedReader(StandardCharsets.UTF_8)?.use { it.readText() }.orEmpty()
-            if (code !in 200..299) {
-                VisionAnalysisResult.Failure(errorMessage(body) ?: "视觉识别失败（HTTP $code）")
-            } else {
-                val content = contentOf(body)?.trim()
-                if (content.isNullOrBlank()) {
-                    VisionAnalysisResult.Failure("视觉返回空描述")
+        return withContext(Dispatchers.IO) {
+            var connection: HttpURLConnection? = null
+            var bodyStream: java.io.InputStream? = null
+            var cancelled = false
+            try {
+                val active = (URL(endpoint).openConnection() as HttpURLConnection).apply {
+                    requestMethod = "POST"
+                    connectTimeout = CONNECT_TIMEOUT_MS
+                    readTimeout = readTimeoutMs
+                    doOutput = true
+                    setRequestProperty("Authorization", "Bearer ${request.apiKey.trim()}")
+                    setRequestProperty("Content-Type", "application/json; charset=utf-8")
+                }
+                connection = active
+                val code = abortsOnCancel(active) {
+                    active.outputStream.use { it.write(payload.toByteArray(StandardCharsets.UTF_8)) }
+                    active.responseCode
+                }
+                val stream = if (code in 200..299) active.inputStream else active.errorStream
+                bodyStream = stream
+                val body = stream?.let {
+                    readBodyCancellable(it) { closeQuietly(active, it) }
+                        .toString(StandardCharsets.UTF_8)
+                }.orEmpty()
+                if (code !in 200..299) {
+                    VisionAnalysisResult.Failure(errorMessage(body) ?: "视觉识别失败（HTTP $code）")
                 } else {
-                    VisionAnalysisResult.Described(content)
+                    val content = contentOf(body)?.trim()
+                    if (content.isNullOrBlank()) {
+                        VisionAnalysisResult.Failure("视觉返回空描述")
+                    } else {
+                        VisionAnalysisResult.Described(content)
+                    }
+                }
+            } catch (e: CancellationException) {
+                cancelled = true
+                throw e
+            } catch (e: java.net.SocketTimeoutException) {
+                currentCoroutineContext().ensureActive()
+                VisionAnalysisResult.Failure("视觉识别失败：视觉读取超时")
+            } catch (e: Exception) {
+                currentCoroutineContext().ensureActive()
+                VisionAnalysisResult.Failure("视觉识别失败：${e.message?.take(80) ?: e.javaClass.simpleName}")
+            } finally {
+                if (!cancelled) {
+                    runCatching { bodyStream?.close() }
+                    runCatching { connection?.disconnect() }
                 }
             }
-        } catch (e: Exception) {
-            VisionAnalysisResult.Failure("视觉识别失败：${e.message?.take(80) ?: e.javaClass.simpleName}")
-        } finally {
-            connection?.disconnect()
         }
     }
 
-    /** 基础地址与完整识图路径的约定：已含 chat/completions 不重复拼接，否则补全一次。 */
+     
+    internal suspend fun readBodyCancellable(
+        stream: java.io.InputStream,
+        abort: () -> Unit
+    ): ByteArray = suspendCancellableCoroutine { continuation ->
+        val reader = Thread({
+            try {
+                continuation.resumeWith(Result.success(stream.use { it.readBytes() }))
+            } catch (t: Throwable) {
+                continuation.resumeWith(Result.failure(t))
+            }
+        }, "vision-body-read").apply { isDaemon = true }
+        continuation.invokeOnCancellation {
+            reader.interrupt()
+            Thread({ runCatching { abort() } }, "vision-body-abort").apply { isDaemon = true }.start()
+        }
+        reader.start()
+    }
+
+    private fun closeQuietly(connection: HttpURLConnection, stream: java.io.InputStream) {
+        runCatching { connection.disconnect() }
+        runCatching { stream.close() }
+    }
+
+    private suspend fun <T> abortsOnCancel(connection: HttpURLConnection, block: () -> T): T = coroutineScope {
+        val finished = AtomicBoolean(false)
+        val guard = launch(start = CoroutineStart.UNDISPATCHED) {
+            try {
+                awaitCancellation()
+            } finally {
+                if (!finished.get()) runCatching { connection.disconnect() }
+            }
+        }
+        try {
+            block()
+        } finally {
+            finished.set(true)
+            guard.cancel()
+        }
+    }
+
+     
     internal fun chatEndpoint(baseUrl: String): String {
         val base = baseUrl.trim().trimEnd('/')
         if (base.endsWith("/chat/completions")) return base

@@ -17,7 +17,7 @@ import kotlinx.coroutines.sync.withLock
 import kotlinx.serialization.json.*
 import java.util.UUID
 
-/** Account/environment lifecycle and composition. All HTTP enters the network adapters. */
+ 
 class MobileBackendRuntime private constructor(private val app: Application) : BackendAccountGateway {
     private val tokens = AuthTokenStore(app)
     private val environmentPrefs = app.getSharedPreferences("backend_environment", Context.MODE_PRIVATE)
@@ -95,7 +95,7 @@ class MobileBackendRuntime private constructor(private val app: Application) : B
         } else null
         val result = try { client.authenticate(account, password, registrationId) }
         catch (error: BackendHttpException) {
-            // A committed registration with a lost response is recovered by the original credentials.
+            
             if (register && error.status == 409) client.authenticate(account, password, null) else throw error
         }
         stopSession()
@@ -108,7 +108,7 @@ class MobileBackendRuntime private constructor(private val app: Application) : B
         XingShiApplication.registerServiceProviders(app)
         UserRepository(app).updateUserName(session.nickname)
         mutableState.value = BackendAccountState(session.environment, session.userId, session.generation, canConfigureEnvironment = BuildConfig.DEBUG)
-        // The registration response owns the initial identity; never create a second default helper.
+        
         val initial = result.obj("initial_instance")
         if (initial.text("instance_id").isNotBlank()) mapInstance(initial, result.text("initial_conversation_id"))
         try { discover(); recoverDeletions() }
@@ -233,8 +233,8 @@ class MobileBackendRuntime private constructor(private val app: Application) : B
                 resources.saveChatConfiguration(id, frozen)
             }
             if (legacy) {
-                // Confirm an older unknown command unchanged before publishing the
-                // newly explicit supplier/format with a new operation and version.
+                
+                
                 check(localPrefs.edit().remove(key).remove("op:model-save:${draft.localId}").commit())
                 frozen = buildJsonObject {
                     draftBody.forEach { (name, value) -> put(name, value) }
@@ -250,7 +250,7 @@ class MobileBackendRuntime private constructor(private val app: Application) : B
             return@withLock if (failure.definitiveRejection) CloudChatModelPublish.Rejected(chatFailure("发布主模型配置", failure))
             else CloudChatModelPublish.Unknown("云端暂时无法确认发布结果（${failure.status}）")
         } catch (failure: Exception) {
-            // 网络中断/响应不完整同样是结果未知：保留原操作身份与加密草稿，等用户重试幂等确认。
+            
             if (failure is CancellationException || failure is StaleBackendSession) throw failure
             return@withLock CloudChatModelPublish.Unknown("云端暂时无法确认发布结果：${failure.message ?: "网络异常"}")
         }
@@ -262,7 +262,7 @@ class MobileBackendRuntime private constructor(private val app: Application) : B
         requireSession(expected)
         val existing = localPrefs.getString("model:$localId", null)
         check(existing == null || existing == configurationId) { "本地缓存已指向其他云端主模型配置，请刷新后重试" }
-        // 同一云端配置只能有一个本地引用：清掉旧缓存行留下的失效映射。
+        
         val stale = localPrefs.all.entries.filter { it.value == configurationId && it.key != "model:$localId" }.map { it.key }
         val editor = localPrefs.edit().putString("model:$localId", configurationId)
         stale.forEach { editor.remove(it) }
@@ -464,7 +464,7 @@ class MobileBackendRuntime private constructor(private val app: Application) : B
         check(localPrefs.edit().putString("op:$key", it).commit()) { "无法保存操作身份" }
     }
 
-    /** 版本只保留云端来源；旧安装写入的本地版本副本在首次读取时清理。 */
+     
     private fun clearLegacyVersionCopies() {
         val stale = localPrefs.all.keys.filter { it.startsWith("model-version:") }
         if (stale.isNotEmpty()) localPrefs.edit().apply { stale.forEach(::remove) }.commit()
@@ -486,7 +486,7 @@ class MobileBackendRuntime private constructor(private val app: Application) : B
         )
     }
 
-    /** 云端已明确拒绝时转成可读原因；结果未知仍交给调用方保留原命令。 */
+     
     private fun chatFailure(action: String, failure: BackendHttpException): String {
         val reason = when {
             failure.serverMessage.contains("CHAT_CREDENTIAL_UNAVAILABLE") -> "云端凭据已不可用，请重新填写 API Key 后保存"
@@ -498,7 +498,7 @@ class MobileBackendRuntime private constructor(private val app: Application) : B
                 failure.serverMessage.ifBlank { "云端不接受该配置" }
             failure.status == 403 -> "当前账号无权修改主模型配置"
             failure.status == 404 -> "云端找不到可用的主模型配置"
-            // 结果未确认时不得当成失败丢弃：同一操作身份重试可幂等确认。
+            
             !failure.definitiveRejection -> "云端暂时无法确认结果，请重试同一操作以确认"
             else -> failure.serverMessage.ifBlank { failure.message ?: "云端请求失败（${failure.status}）" }
         }
@@ -524,6 +524,7 @@ class MobileBackendRuntime private constructor(private val app: Application) : B
         com.xingshi.ai.feature.chat.ui.viewmodel.InboundTurnDispatcher.stopAccount()
         com.xingshi.ai.feature.chat.ui.viewmodel.ConversationIntake.stopAccount()
         com.xingshi.ai.feature.groupchat.GroupReplyReceiver.stopAccount()
+        com.xingshi.ai.feature.groupchat.GroupDeliveryRuntime.stopAccount()
         com.xingshi.ai.plugins.PluginFramework.resetAccount()
         com.xingshi.ai.common.AccountDataStores.close()
         AppDatabase.shutdown()

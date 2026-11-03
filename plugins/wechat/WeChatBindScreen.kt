@@ -114,7 +114,7 @@ private fun WeChatBindScreenContent(
         ) {
             when {
                 uiState.isLoggedIn -> {
-                    // Already bound
+                    
                     Text(
                         text = themeText("ui_we_chat_bind_screen_03"),
                         fontSize = 20.sp,

@@ -506,7 +506,7 @@ private fun PluginDetailScreenContent(pluginId: String, onNavigateBack: () -> Un
                 }
                 val installedNow = manager?.isInstalled(item.id) == true
                 val installedNowVersion = manager?.installed?.value?.firstOrNull { it.manifest.id == item.id }?.manifest?.version
-                // 已装版本不比目录条目旧时不能再点“更新”：同版显示已安装，更高版显示当前版本已更新
+                
                 val upToDate = installedNowVersion != null &&
                     PluginManifests.versionCode(installedNowVersion) >= PluginManifests.versionCode(item.version)
                 Button(

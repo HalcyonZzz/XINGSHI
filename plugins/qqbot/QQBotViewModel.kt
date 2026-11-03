@@ -53,7 +53,7 @@ class QQBotViewModel(
 
     private val companionDao = AppDatabase.getDatabase(appContext).companionDao()
 
-    // ── 扫码绑定相关 ──
+    
     private var bindJob: Job? = null
     private var currentBindKey: String? = null
     private var currentTaskId: String? = null
@@ -80,7 +80,7 @@ class QQBotViewModel(
                     account = account
                 )
                 if (account != null) {
-                    // 连接由宿主通道运行期承载，页面不直接启动平台 Service
+                    
                     loadUserMappings()
                 } else {
 
@@ -116,7 +116,7 @@ class QQBotViewModel(
         }
     }
 
-    // ── 手动绑定 ──
+    
 
     fun saveAccount(appId: String, clientSecret: String, customName: String?) {
         if (_uiState.value.isLoading) return
@@ -134,7 +134,7 @@ class QQBotViewModel(
         }
     }
 
-    // ── 扫码绑定（Hermes 协议） ──
+    
 
     fun startQrBind() {
         if (bindJob?.isActive == true) return
@@ -172,8 +172,8 @@ class QQBotViewModel(
                     isLoading = false
                 )
 
-                // 轮询
-                val deadline = System.currentTimeMillis() + 600_000L // 10 分钟
+                
+                val deadline = System.currentTimeMillis() + 600_000L 
                 var refreshCount = 0
                 val maxRefresh = 3
 
@@ -200,9 +200,9 @@ class QQBotViewModel(
                             val secret = AESGCMHelper.decrypt(encryptedSecret, key)
                             val openid = pollBody.data.userOpenid
 
-                            // 保存账号
+                            
                             tokenStore.saveAccount(QQBotAccount(appId, secret))
-                            // 触发 accountFlow 更新
+                            
                             _uiState.value = _uiState.value.copy(
                                 isLoggedIn = true,
                                 qrBitmap = null,
@@ -210,7 +210,7 @@ class QQBotViewModel(
                                 bindError = null
                             )
                             _events.emit(QQBotEvent.LoginSuccess)
-                            // 连接由宿主通道运行期承载，页面不直接启动平台 Service
+                            
                             return@launch
                         }
                         BindStatus.EXPIRED -> {
@@ -222,7 +222,7 @@ class QQBotViewModel(
                                 )
                                 return@launch
                             }
-                            // 重新创建任务
+                            
                             val newKey = AESGCMHelper.generateKey()
                             currentBindKey = newKey
                             val newResponse = liteBindApi.createBindTask(
@@ -241,7 +241,7 @@ class QQBotViewModel(
                                 }
                             }
                         }
-                        else -> { /* 继续轮询 */ }
+                        else -> {   }
                     }
                 }
 
@@ -338,7 +338,7 @@ data class QQBotUiState(
     val userCompanionMappings: Map<String, Long> = emptyMap(),
     val customBotName: String? = null,
     val connectionState: QQBotWebSocketClient.ConnectionState = QQBotWebSocketClient.ConnectionState.DISCONNECTED,
-    // 扫码绑定状态
+    
     val qrBitmap: Bitmap? = null,
     val bindStatus: BindStatus = BindStatus.NONE,
     val bindError: String? = null

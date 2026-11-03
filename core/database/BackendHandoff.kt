@@ -7,7 +7,7 @@ data class BackendCompanionLink(@PrimaryKey val companionId: Long, val instanceI
     val conversationId: String, val version: Long, val personaConfigId: String = "", val personaVersion: Long = 0,
     val provider: String = "", val model: String = "", val deletingOperationId: String? = null)
 
-/** Existing input's durable handoff, never a second input or model queue. Payload is encrypted by the repository caller. */
+ 
 @Entity(tableName = "backend_input_handoffs")
 data class BackendInputHandoff(@PrimaryKey val localMessageId: Long, val companionId: Long,
     val clientMessageId: String, val sourceEventId: String, val encryptedPayload: String,

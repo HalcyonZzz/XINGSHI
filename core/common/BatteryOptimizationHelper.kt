@@ -6,12 +6,7 @@ import android.net.Uri
 import android.os.Build
 import android.provider.Settings
 
-/**
- * 电池优化与自启动设置辅助类。
- *
- * 已针对 OPPO / vivo / 小米 / 华为 / 三星 / 一加等厂商做设置页精确跳转，
- * 优先尝试 ROM 新版本路径，失败自动回退旧版路径或应用详情页。
- */
+ 
 object BatteryOptimizationHelper {
 
     fun isIgnoringBatteryOptimizations(context: Context): Boolean {
@@ -26,9 +21,7 @@ object BatteryOptimizationHelper {
         OppoVivoAdaptationHelper.openBatteryOptimizationSettings(context)
     }
 
-    /**
-     * 打开自启动 / 应用启动管理设置页。
-     */
+     
     fun openAutoStartSettings(context: Context) {
         if (RomUtils.isOppoOrVivo()) {
             OppoVivoAdaptationHelper.openAutoStartSettings(context)
@@ -71,10 +64,7 @@ object BatteryOptimizationHelper {
         safeStartActivity(context, intent)
     }
 
-    /**
-     * 打开后台高耗电 / 耗电保护 / 神隐模式等设置页。
-     * OPPO / vivo 使用专门适配路径。
-     */
+     
     fun openBackgroundPowerSettings(context: Context) {
         if (RomUtils.isOppoOrVivo()) {
             OppoVivoAdaptationHelper.openBackgroundPowerSettings(context)
@@ -83,16 +73,12 @@ object BatteryOptimizationHelper {
         openAppDetailsSettings(context)
     }
 
-    /**
-     * 打开应用详情页（通用兜底）。
-     */
+     
     fun openAppDetailsSettings(context: Context) {
         OppoVivoAdaptationHelper.openAppDetailsSettings(context)
     }
 
-    /**
-     * 打开通知设置页。
-     */
+     
     fun openNotificationSettings(context: Context) {
         OppoVivoAdaptationHelper.openNotificationSettings(context)
     }

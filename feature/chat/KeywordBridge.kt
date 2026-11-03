@@ -11,12 +11,7 @@ object KeywordBridge {
 
     private const val TAG = "KeywordBridge"
 
-    /**
-     * 上次注入的词表签名（条数 + 内容 hash）。
-     *
-     * 词表会在运行期被 SecurityDataSeeder 补种，因此不能只在首次注入后永久跳过：
-     * 内容签名变化时重新注入，未变化则跳过，避免重复编译全部正则。
-     */
+     
     @Volatile
     private var injectedSignature: String? = null
 

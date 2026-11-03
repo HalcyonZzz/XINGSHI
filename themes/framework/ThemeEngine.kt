@@ -17,10 +17,7 @@ sealed interface ThemeUninstallOutcome {
     data class Failure(val message: String) : ThemeUninstallOutcome
 }
 
-/**
- * 已安装主题的加载、安装、更新、卸载与选中状态。
- * 纯文件逻辑，不依赖 Android，可直接 JVM 单测。
- */
+ 
 class ThemeEngine(
     val themesDir: File,
     private val prefs: ThemePreferencesAccess,
@@ -47,7 +44,7 @@ class ThemeEngine(
         if (id == OFFICIAL_THEME_ID || id == officialManifest.id) officialTheme()
         else installedThemes().firstOrNull { it.manifest.id == id }
 
-    /** 冷启动解析：选中包缺失/损坏/不兼容时回退官方，并清理选择。 */
+     
     fun resolveActive(): InstalledTheme {
         val id = prefs.selectedThemeId
         if (id == OFFICIAL_THEME_ID || id == officialManifest.id) return officialTheme()
@@ -59,7 +56,7 @@ class ThemeEngine(
         return found
     }
 
-    /** 校验并加载通过后才写入选中选择；失败保留当前主题。 */
+     
     fun switchTo(id: String): ThemeSwitchResult {
         val theme = find(id) ?: return ThemeSwitchResult.Failure("主题未安装")
         if (!theme.manifest.supportsFramework) return ThemeSwitchResult.Failure("主题与当前框架版本不兼容")
@@ -71,7 +68,7 @@ class ThemeEngine(
         return ThemeSwitchResult.Success(theme)
     }
 
-    /** 已解包但尚未替换旧包的主题（代码主题需在提交前完成加载验证）。 */
+     
     data class StagedTheme(
         val manifest: ThemeManifest,
         val staging: File,
@@ -84,7 +81,7 @@ class ThemeEngine(
         data class Failure(val message: String) : ThemeStageResult
     }
 
-    /** 校验并解包到 staging；不触碰旧包、不写选择偏好。 */
+     
     fun stage(bytes: ByteArray, expectedId: String? = null): ThemeStageResult {
         val inspected = ThemePackages.inspect(bytes)
         if (inspected is ThemePackageResult.Failure) return ThemeStageResult.Failure(inspected.message)
@@ -104,7 +101,7 @@ class ThemeEngine(
         )
     }
 
-    /** 提交 staging（原子替换）；调用方须先完成代码加载验证。 */
+     
     fun commit(staged: StagedTheme): ThemeInstallOutcome {
         val error = ThemePackages.commitStaging(staged.staging, staged.target)
         if (error != null) {
@@ -125,7 +122,7 @@ class ThemeEngine(
         ThemePackages.discardStaging(staged.staging)
     }
 
-    /** 纯文件安装（无代码验证）；运行时安装走 stage + 验证 + commit。 */
+     
     fun install(bytes: ByteArray, expectedId: String? = null): ThemeInstallOutcome {
         val staged = stage(bytes, expectedId)
         if (staged is ThemeStageResult.Failure) return ThemeInstallOutcome.Failure(staged.message)

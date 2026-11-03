@@ -1,11 +1,6 @@
 package com.xingshi.ai.common
 
-/**
- * 服务端点常量。
- *
- * 不内置中继、服务端地址与任何 API 凭证，用户在设置中配置自己的
- * OpenAI 兼容端点。
- */
+ 
 object SuFlowApi {
     const val BASE_URL = ""
     const val AUTH_BASE_URL = ""

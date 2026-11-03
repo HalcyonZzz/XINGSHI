@@ -8,9 +8,7 @@ import com.google.zxing.qrcode.QRCodeWriter
 import com.google.zxing.qrcode.decoder.ErrorCorrectionLevel
 import java.util.EnumMap
 
-/**
- * 基于 ZXing 生成二维码 Bitmap。
- */
+ 
 object QRCodeGenerator {
 
     fun generate(

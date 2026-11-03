@@ -66,7 +66,7 @@ import com.xingshi.ai.domain.MainChatConfigurationIssue
 import com.xingshi.ai.domain.mainChatProtocol
 import com.xingshi.ai.theme.framework.themeText
 
-// ═══ 自定义中继 error code mapping ═══
+
 private fun mapErrorCode(code: String): String = when (code) {
     "upstream_unreachable" -> "上游不通"
     "account_blocked" -> "已冻结"
@@ -76,9 +76,9 @@ private fun mapErrorCode(code: String): String = when (code) {
     else -> "失败"
 }
 
-// ============================================================
-// PetalStatChip - 状态标签小组件
-// ============================================================
+
+
+
 
 @Composable
 fun PetalStatChip(icon: String, text: String, color: Color, isDarkTheme: Boolean) {
@@ -107,9 +107,9 @@ fun PetalStatChip(icon: String, text: String, color: Color, isDarkTheme: Boolean
     }
 }
 
-// ============================================================
-// ApiConfigEditDialog - 内联 API 配置编辑弹窗
-// ============================================================
+
+
+
 
 @Composable
 fun PetalApiConfigEditDialog(
@@ -252,7 +252,7 @@ fun PetalApiConfigEditDialog(
                 if (isMain && protocol == "IFLYTEK_HTTP") {
                     Text(themeText("ui_main_spark_password_hint"), color = textSecondaryColor, fontSize = 12.sp)
                 }
-                // Native Messages accepts temperature in 0..1; other supported formats keep 0..2.
+                
                 Text(
                     text = "Temperature: ${String.format("%.1f", temperature)}",
                     color = textPrimaryColor,
@@ -269,7 +269,7 @@ fun PetalApiConfigEditDialog(
                     )
                 )
 
-                // 辅助模型不消费通用输出上限：只在主模型配置里保留
+                
                 if (isMain) {
                     OutlinedTextField(
                         value = maxTokens,
@@ -293,7 +293,7 @@ fun PetalApiConfigEditDialog(
                     )
                 }
 
-                // API 格式选择 — 只对主模型的自定义 API 显示；辅助模型沿用各自能力协议
+                
                 if (isCustom && isMain) {
                     var showFormatDropdown by remember { mutableStateOf(false) }
                     val formatOptions = mapOf(
@@ -394,9 +394,9 @@ fun PetalApiConfigEditDialog(
     )
 }
 
-// ============================================================
-// PetalSavedApiCard - 已保存的其他 API 配置卡片
-// ============================================================
+
+
+
 
 @Composable
 fun PetalSavedApiCard(
@@ -404,15 +404,15 @@ fun PetalSavedApiCard(
     connectionResult: SettingsViewModel.ConnectionResult,
     isExpanded: Boolean,
     isActive: Boolean,
-    /** 主模型以云端启停结果为准；辅助配置沿用本机启用位。 */
+     
     isEnabled: Boolean = true,
-    /** 未发布到云端的本地草稿：可丢弃、不可启用/设为默认。 */
+     
     isDraft: Boolean = false,
-    /** 发布结果未知、等待幂等确认：只能重试保存，不能改启停/默认。 */
+     
     isPending: Boolean = false,
-    /** 云端凭据不可用：需要重新填写 Key 后保存，不能直接启停。 */
+     
     isUnavailable: Boolean = false,
-    /** 主模型卡片需要展示的云端原因（凭据不可用、发布未知等）。 */
+     
     statusNote: String? = null,
     onExpandToggle: () -> Unit,
     onEdit: (ApiConfig) -> Unit,
@@ -436,7 +436,7 @@ fun PetalSavedApiCard(
         colors = CardDefaults.cardColors(containerColor = cardColor)
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
-            // Header row
+            
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -459,7 +459,7 @@ fun PetalSavedApiCard(
                 }
 
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    // Active indicator
+                    
                     if (isActive) {
                         PetalStatChip(
                             icon = "\u2713",
@@ -471,7 +471,7 @@ fun PetalSavedApiCard(
                     }
 
                     if (showActiveAction) {
-                        // 主模型不展示本机连接测试结果，只展示云端确认的启停状态。
+                        
                         val cloudStatusText = when {
                             isDraft -> "未发布"
                             isPending -> "待确认"
@@ -494,7 +494,7 @@ fun PetalSavedApiCard(
                             Spacer(modifier = Modifier.width(4.dp))
                         }
                     } else {
-                        // Connection status indicator
+                        
                         val statusColor = when (connectionResult.status) {
                             SettingsViewModel.ConnectionStatus.CONNECTED -> MaterialTheme.colorScheme.primary
                             SettingsViewModel.ConnectionStatus.FAILED -> MaterialTheme.colorScheme.error
@@ -530,11 +530,11 @@ fun PetalSavedApiCard(
                 }
             }
 
-            // Expanded content
+            
             if (isExpanded) {
                 Spacer(modifier = Modifier.height(12.dp))
 
-                // Model info
+                
                 if (config.model.isNotEmpty()) {
                     Text(
                         text = themeText("api_config_model_line_fmt", config.model),
@@ -544,7 +544,7 @@ fun PetalSavedApiCard(
                     Spacer(modifier = Modifier.height(4.dp))
                 }
 
-                // Base URL
+                
                 if (config.baseUrl.isNotEmpty()) {
                     Text(
                         text = themeText("api_config_base_url_line_fmt", config.baseUrl),
@@ -563,13 +563,13 @@ fun PetalSavedApiCard(
                     Spacer(modifier = Modifier.height(8.dp))
                 }
 
-                // Action buttons
+                
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.End,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    // 云端已发布的主模型配置不提供本地删除，只能停用；草稿才可丢弃。
+                    
                     if (isDraft || !showActiveAction) {
                         TextButton(onClick = onDelete) {
                             Text(themeText("ui_petal_api_cards_12"), color = MaterialTheme.colorScheme.error, fontSize = 13.sp)
@@ -598,7 +598,7 @@ fun PetalSavedApiCard(
         }
     }
 
-    // 编辑弹窗 - INLINE inside PetalSavedApiCard
+    
     editingConfig?.let { editing ->
         PetalApiConfigEditDialog(
             config = editing,
@@ -614,9 +614,9 @@ fun PetalSavedApiCard(
     }
 }
 
-// ============================================================
-// PetalAddApiButton - 添加 API 配置按钮
-// ============================================================
+
+
+
 
 @Composable
 fun PetalAddApiButton(onClick: () -> Unit, isDarkTheme: Boolean, label: String = themeText("ui_petal_api_cards_15")) {
@@ -643,9 +643,9 @@ fun PetalAddApiButton(onClick: () -> Unit, isDarkTheme: Boolean, label: String =
     }
 }
 
-// ============================================================
-// PetalApiProviderPickerDialog - 选择 API 提供商（预设 + 自定义）
-// ============================================================
+
+
+
 
 @Composable
 fun PetalApiProviderPickerDialog(

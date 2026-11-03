@@ -4,7 +4,7 @@ import android.content.Context
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 
-/** 主题解析后的外观：官方默认色 + 主题覆盖项。 */
+ 
 data class ThemePalette(
     val primary: Int,
     val onPrimary: Int,
@@ -34,24 +34,24 @@ data class ResolvedAppearance(
     val inputBar: ThemeInputBar
 )
 
-/** 官方主题向框架注册的默认实现。框架不反向依赖官方主题。 */
+ 
 interface OfficialThemeProvider {
     fun manifest(): ThemeManifest
     fun lightPalette(): ThemePalette
     fun darkPalette(): ThemePalette
 
-    /** 官方文案：language + 资源键；缺失返回 null，由框架继续回退。 */
+     
     fun text(context: Context, language: String, key: String, args: List<Any>): String?
 
-    /** 官方合入的市场目录；无可用市场源时返回 null，界面展示真实状态。 */
+     
     fun catalog(context: Context): ThemeCatalog?
 
-    /** 官方数据来源的标识，便于诊断（如 assets 路径或 git 仓库）。 */
+     
     val marketSourceLabel: String
         get() = ""
 }
 
-/** 可被代码主题覆盖的页面标识；未覆盖的页面回退官方实现。 */
+ 
 object ThemePages {
     const val HOME = "home"
     const val CONTACTS = "contacts"
@@ -91,46 +91,43 @@ object ThemePages {
     )
 }
 
-/** 宿主提供的页面数据项：来自原业务状态快照，不复制存储或模型实现。 */
+ 
 data class ThemePageItem(
     val id: String,
     val kind: String,
     val title: String,
     val subtitle: String = "",
     val avatar: String = "",
-    /** 原消息类型（text/image/audio/video/voice/file），非消息列表为空。 */
+     
     val messageType: String = "",
-    /** 媒体原件位置（内部路径或 content URI）；图片/语音/视频等可据此展示或播放。 */
+     
     val mediaPath: String = "",
-    /** 原消息时间戳（毫秒），非消息列表为 0。 */
+     
     val timestamp: Long = 0L
 ) {
-    /** 列表 key：kind 与业务 id 组合，角色与群聊 id 相同时不会冲突；payload 仍用原始 id。 */
+     
     val key: String get() = "$kind:$id"
 }
 
-/** 宿主提供的页面状态与动作入口：dispatch 由宿主转交原业务动作。 */
+ 
 class ThemePageHost(
     val page: String,
     val items: List<ThemePageItem>,
     val state: Map<String, String>,
-    /** 宿主生成的位图资产（如 QQ 绑定二维码）；作者页可直接展示。 */
+     
     val images: Map<String, android.graphics.Bitmap> = emptyMap(),
-    /** 宿主代为承载的不可重排内容（如插件作者页面）；作者只重排外壳，内容原样嵌入。 */
+     
     val content: (@Composable () -> Unit)? = null,
     val dispatch: (ThemePageAction) -> Unit
 )
 
-/** 作者页面可触发的动作：由宿主映射到原导航/业务回调。 */
+ 
 sealed interface ThemePageAction {
     data class Invoke(val id: String, val payload: Map<String, String> = emptyMap()) : ThemePageAction
     data class Open(val route: String) : ThemePageAction
 }
 
-/**
- * 非 Composable 绘制代码（自定义 Modifier/DrawScope）取主题主色的桥。
- * 由 [ThemeRuntime.appearance] 在组合时刷新，避免这些效果硬编码固定颜色。
- */
+ 
 object ThemePaint {
     @Volatile
     private var lightPrimary: Int = 0xFF7BA3C6.toInt()
@@ -146,25 +143,22 @@ object ThemePaint {
     fun tint(isDark: Boolean): Color = Color(if (isDark) darkPrimary else lightPrimary)
 }
 
-/**
- * 代码主题入口：主题包 dex 内继承本类并覆盖 [Page]／[Wrap]。
- * 未覆盖的页面调用 fallback，即官方页面；官方主题自身不实现本类。
- */
+ 
 abstract class ThemeCodeUi {
-    /** 可包裹整个应用外壳；默认不改变官方结构。 */
+     
     @Composable
     open fun Wrap(content: @Composable () -> Unit) {
         content()
     }
 
-    /** page 为 [ThemePages] 之一；返回 fallback() 表示不覆盖该页面。 */
+     
     @Composable
     open fun Page(host: ThemePageHost, fallback: @Composable () -> Unit) {
         fallback()
     }
 }
 
-/** 颜色解析：支持 #RRGGBB、#AARRGGBB、0xFFRRGGBB；无法解析时返回 null 走回退。 */
+ 
 internal fun parseThemeColor(raw: String): Int? {
     val s = raw.trim()
     if (s.isEmpty()) return null

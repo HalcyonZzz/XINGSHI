@@ -289,7 +289,7 @@ fun ChatBubble(
                 )
             } else if (message.content.startsWith("[语音]") || (message.type == MessageType.VOICE)) {
                 val ctx = LocalContext.current
-                // 真实时长来自持久元数据；旧消息才回退正文标记。
+                
                 val storedSeconds = (com.xingshi.ai.feature.chat.VoiceTurnMetadataStore
                     .durationMs(ctx, message.id) / 1000L).toInt()
                 val voiceDuration = maxOf(extractVoiceDuration(message.content), storedSeconds)
@@ -447,9 +447,7 @@ fun ChatBubble(
 }
 }
 
-/**
- * Copy URI content to app cache directory and return the file path
- */
+ 
 internal fun copyUriToCache(context: android.content.Context, uri: Uri): String? {
     return try {
         val inputStream = context.contentResolver.openInputStream(uri) ?: return null
@@ -472,20 +470,16 @@ private fun extractVoiceDuration(content: String): Int {
     return regex.find(content)?.groupValues?.get(1)?.toIntOrNull() ?: 1
 }
 
-/**
- * NestedScrollConnection that prevents horizontal scroll events from propagating
- * to the parent when the user is primarily scrolling vertically.
- * This stops accidental side-swipes (system back gesture, ViewPager) during chat scrolling.
- */
+ 
 @Composable
 internal fun rememberHorizontalSwipeGuard(): NestedScrollConnection {
     return remember {
         object : NestedScrollConnection {
             override fun onPreScroll(available: Offset, source: NestedScrollSource): Offset {
-                // 正在垂直滚动时，消费父容器的横向滚动事件
-                // 防止横向手势触发系统返回或 ViewPager 切换
+                
+                
                 return if (abs(available.y) > abs(available.x)) {
-                    Offset(available.x, 0f) // 消费横向，放行纵向
+                    Offset(available.x, 0f) 
                 } else {
                     Offset.Zero
                 }
@@ -494,9 +488,7 @@ internal fun rememberHorizontalSwipeGuard(): NestedScrollConnection {
     }
 }
 
-/**
- * 表情包消息显示 - 类似微信，无气泡框包裹，直接显示图片
- */
+ 
 @Composable
 fun StickerMessageBubble(
     stickerName: String,

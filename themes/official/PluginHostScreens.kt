@@ -60,7 +60,7 @@ fun PluginPageHost(pluginId: String, companionId: Long, input: String, onNavigat
                 ThemePageHost(
                     page = ThemePages.PLUGIN_PAGE,
                     items = emptyList(),
-                    // 与原官方路径一致：装载完成/报告变化时重建内容，关闭回调真实返回。
+                    
                     content = remember(installed, outcomes, manager, pluginId, companionId, input) {
                         manager.pageFor(pluginId, companionId, input, close = { onNavigateBack() })
                     },
@@ -104,10 +104,10 @@ private fun PluginPageHostContent(
     val installed by manager.installed.collectAsState()
     val outcomes by manager.pluginOutcomes.collectAsState()
     val name = installed.firstOrNull { it.manifest.id == pluginId }?.manifest?.name ?: pluginId
-    // 页面只认本插件自己的最近一次结果：会话横幅是最后一条，可能来自别的插件
+    
     val report = pageReportOf(outcomes, pluginId, companionId)
-    // 内容也以入口列表为键：页面在 reload 完成前组合（如进程死亡恢复路由）会缓存 null，
-    // 装载完成后必须换成本次装载的实例，不能停在「不可用」上
+    
+    
     val content = remember(installed, manager, pluginId, companionId, input, report) {
         manager.pageFor(pluginId, companionId, input, onNavigateBack)
     }
@@ -138,7 +138,7 @@ fun PluginSettingsHost(
                     page = ThemePages.PLUGIN_SETTINGS,
                     items = emptyList(),
                     content = remember(installed, manager, pluginId) {
-                        // 插件设置内容里的 ctx.close 必须真实返回：外壳返回按钮不能替代
+                        
                         manager.settingsPageFor(
                             pluginId,
                             close = { onNavigateBack() },
@@ -253,7 +253,7 @@ fun PluginChatCards(companionId: Long, input: String) {
 
     Column(modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp)) {
         cards.forEach { ref ->
-            // 每个插件只拿自己的结果：会话横幅是最后一条，可能来自别的插件
+            
             val report = outcomes[ref.pluginId to companionId]?.report
             ref.card.content(
                 PluginChatCardContext(
@@ -321,7 +321,7 @@ fun PluginPendingBanner(companionId: Long) {
                 if (outcome.originalText.isNotBlank()) {
                     TextButton(onClick = {
                         scope.launch {
-                            // 发送被拒（未接入/队列已满）时保留横幅与待处理记录，别把原问题一起丢掉
+                            
                             if (manager.sendOriginal(companionId, outcome.originalText)) {
                                 manager.dismissOutcome(companionId)
                             }
@@ -335,8 +335,8 @@ fun PluginPendingBanner(companionId: Long) {
     }
 }
 
-// 插件页面上下文与聊天卡片共用同一条读取口径：按 (插件, 会话) 取本插件自己的最近一次结果。
-// 会话单槽横幅只保证显示最后一条，别的插件占着横幅时页面不能从它那里取报告，否则永远刷新不到自己的新结果。
+
+
 internal fun pageReportOf(
     outcomes: Map<Pair<String, Long>, PluginOutcome>,
     pluginId: String,

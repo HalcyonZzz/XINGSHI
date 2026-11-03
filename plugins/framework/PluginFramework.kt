@@ -6,9 +6,16 @@ import com.xingshi.ai.database.AppDatabase
 import com.xingshi.ai.database.repository.ApiConfigRepository
 import java.io.ByteArrayOutputStream
 import java.io.File
+import java.util.concurrent.atomic.AtomicBoolean
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.awaitCancellation
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import okhttp3.OkHttpClient
@@ -36,7 +43,7 @@ object PluginFramework {
     private var managerRef: PluginManager? = null
 
     fun init(app: Application, channelGateway: com.xingshi.ai.plugins.api.HostChannelGateway? = null) {
-        // 服务/Receiver 的重复初始化只补应用上下文，不能用默认 null 抹掉 Application 注入的网关
+        
         if (channelGateway != null) PluginChannels.bind(app, channelGateway) else PluginChannels.bindApp(app)
         if (managerRef != null) return
         synchronized(this) {
@@ -87,7 +94,7 @@ object PluginFramework {
         }
     }
 
-    /** 升级清理历史随包副本：只删除 files/plugins/catalog/，已安装插件、记录与配置不受影响。 */
+     
     private fun clearLegacyBundledCatalog(root: File) {
         val legacy = File(root, "catalog")
         if (!legacy.exists()) return
@@ -122,31 +129,67 @@ object PluginFramework {
         )
     }
 
-    private suspend fun fetch(url: String): ByteArray = fetch(url, null)
+    internal suspend fun fetch(url: String): ByteArray = fetch(url, null)
 
-    private suspend fun fetch(url: String, onProgress: ((received: Long, total: Long) -> Unit)?): ByteArray =
+    internal suspend fun fetch(url: String, onProgress: ((received: Long, total: Long) -> Unit)?): ByteArray =
         withContext(Dispatchers.IO) {
-            client.newCall(Request.Builder().url(url).build()).execute().use { response ->
-                if (!response.isSuccessful) throw IllegalStateException("插件下载失败: HTTP ${response.code}")
-                val body = response.body ?: throw IllegalStateException("插件下载失败")
-                val expected = body.contentLength().takeIf { it > 0L } ?: 0L
-                // 边下边限量：不把超限的插件包整体读进内存
-                val source = body.source()
-                val out = ByteArrayOutputStream()
-                val chunk = ByteArray(64 * 1024)
-                var total = 0L
-                while (true) {
-                    val read = source.read(chunk)
-                    if (read == -1) break
-                    total += read
-                    if (total > MAX_PACKAGE_BYTES) throw IllegalArgumentException("插件包过大")
-                    out.write(chunk, 0, read)
-                    onProgress?.invoke(total, expected)
+            val call = client.newCall(Request.Builder().url(url).build())
+            val cancelled = AtomicBoolean(false)
+            try {
+                abortsOnCancel(call, cancelled) {
+                    call.execute().use { response ->
+                        if (!response.isSuccessful) throw IllegalStateException("插件下载失败: HTTP ${response.code}")
+                        val body = response.body ?: throw IllegalStateException("插件下载失败")
+                        val expected = body.contentLength().takeIf { it > 0L } ?: 0L
+                        
+                        val source = body.source()
+                        val out = ByteArrayOutputStream()
+                        val chunk = ByteArray(64 * 1024)
+                        var total = 0L
+                        while (true) {
+                            currentCoroutineContext().ensureActive()
+                            val read = source.read(chunk)
+                            if (read == -1) break
+                            total += read
+                            if (total > MAX_PACKAGE_BYTES) throw IllegalArgumentException("插件包过大")
+                            out.write(chunk, 0, read)
+                            onProgress?.invoke(total, expected)
+                        }
+                        out.toByteArray()
+                    }
                 }
-                out.toByteArray()
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                if (cancelled.get()) throw CancellationException()
+                throw e
             }
         }
 
-    // 与 PluginLimits 默认的单包上限一致：下载阶段就限量，落包阶段还会再核一次
+    private suspend fun <T> abortsOnCancel(
+        call: okhttp3.Call,
+        cancelled: AtomicBoolean,
+        block: suspend () -> T
+    ): T = coroutineScope {
+        val finished = AtomicBoolean(false)
+        val guard = launch(start = CoroutineStart.UNDISPATCHED) {
+            try {
+                awaitCancellation()
+            } finally {
+                if (!finished.get()) {
+                    cancelled.set(true)
+                    runCatching { call.cancel() }
+                }
+            }
+        }
+        try {
+            block()
+        } finally {
+            finished.set(true)
+            guard.cancel()
+        }
+    }
+
+    
     private const val MAX_PACKAGE_BYTES = 64 * 1024 * 1024
 }

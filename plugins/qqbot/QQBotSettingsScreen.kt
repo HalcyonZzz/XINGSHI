@@ -136,7 +136,7 @@ private fun QQBotSettingsScreenContent(
                 accountId = uiState.account?.appId,
                 customName = uiState.customBotName,
                 connectionState = uiState.connectionState,
-                onBindClick = { /* bind handled inline below */ },
+                onBindClick = {   },
                 onUnbindClick = { showLogoutDialog = true },
                 onRenameClick = { showRenameDialog = true }
             )
@@ -465,7 +465,7 @@ private fun QQBotQrBindSection(
     uiState: QQBotUiState,
     viewModel: QQBotViewModel
 ) {
-    // 二维码扫码绑定（Hermes 协议）
+    
     val qrBitmap = uiState.qrBitmap
     if (qrBitmap != null) {
         Column(

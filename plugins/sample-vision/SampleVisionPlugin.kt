@@ -31,15 +31,12 @@ class SampleVisionPlugin : XingShiPlugin, VisionAnalysisPlugin {
     override suspend fun analyze(request: VisionAnalysisRequest): VisionAnalysisResult =
         VisionAnalysisClient.analyze(request)
 
-    /**
-     * 图片由宿主按独立视觉配置直接调用 [analyze]；这里只在没有图片材料时被调用，
-     * 不伪造识别结果，也不编造“图片已读取”“清晰度合格”之类描述。
-     */
+     
     override suspend fun run(request: PluginRequest, runtime: PluginRuntime): PluginReport {
         val path = request.attachments.firstOrNull { it.kind.name == "IMAGE" }?.path
             ?: return PluginReport.Failure("没有收到图片")
         if (path.isBlank()) return PluginReport.Failure("没有收到图片")
-        // 兜底：宿主未提供配置时明确失败，不拿文件名冒充识别结果
+        
         return PluginReport.Failure("缺少视觉模型配置，无法识别图片「${Uri.decode(path).substringAfterLast('/')}」")
     }
 }

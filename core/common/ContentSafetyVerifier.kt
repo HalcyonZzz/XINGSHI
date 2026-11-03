@@ -6,17 +6,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.json.JSONObject
 
-/**
- * 三层融合内容安全校验器。
- *
- * 管道：
- *   L1 AC关键词（ContentFilter.checkInput）→ 快速特征
- *   L2 向量语义（ContentFilter.checkVector）→ 相似度特征
- *   L1+L2 特征 → 贝叶斯概率评分 → 风险判定
- *
- * 贝叶斯不再做原始文本 n-gram，而是基于 L1/L2 的结构化特征 token。
- * 每条消息计算 ≤10 个特征，O(1) 贝叶斯。
- */
+ 
 object ContentSafetyVerifier {
 
     private const val PREFS_NAME = "safety_bayesian"
@@ -30,7 +20,7 @@ object ContentSafetyVerifier {
     @Volatile
     private var bootstrapped = false
 
-    // ============ 初始化 ============
+    
 
     fun init(context: Context) {
         prefs = context.applicationContext.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
@@ -44,20 +34,20 @@ object ContentSafetyVerifier {
         if (keywords.isEmpty()) return
 
         val samples = BayesianBootstrapper.bootstrap(keywords)
-        // 缓存特征提取结果，避免重复计算 checkFull/checkVector
+        
         val featureCache = samples.map { sample ->
             val kwResult = com.xingshi.ai.common.ContentFilter.checkFull(sample.text)
             val vecResult = com.xingshi.ai.common.ContentFilter.checkVector(sample.text)
             val features = SafetyFeatureExtractor.extract(kwResult, vecResult, sample.text)
             features to sample
         }
-        // 训练用户输入分类器
+        
         featureCache.forEach { (features, sample) ->
             if (sample.source == SampleSource.USER_INPUT) {
                 userClassifier.addSampleDirect(features, sample.isViolation)
             }
         }
-        // 训练模型输出分类器（仅用安全基线样本，违规特征不应标记为安全）
+        
         val safeFeatures = featureCache.filter { (_, sample) -> !sample.isViolation }
         safeFeatures.forEach { (features, _) ->
             modelClassifier.addSampleDirect(features, false)
@@ -66,9 +56,9 @@ object ContentSafetyVerifier {
         android.util.Log.i("SafetyVerifier", "Bootstrapped ${samples.size} samples → ${userClassifier.totalSamples} feature-tokens")
     }
 
-    // ============ 训练 ============
+    
 
-    /** 用 L1+L2 特征训练用户输入分类器 */
+     
     fun trainUserInput(
         rawText: String, isViolation: Boolean, label: String = "",
         kwResult: com.xingshi.ai.common.ContentFilter.CheckResult? = null,
@@ -77,12 +67,12 @@ object ContentSafetyVerifier {
         val kw = kwResult ?: com.xingshi.ai.common.ContentFilter.checkFull(rawText)
         val vec = vecResult ?: com.xingshi.ai.common.ContentFilter.checkVector(rawText)
         val features = SafetyFeatureExtractor.extract(kw, vec, rawText)
-        // 批量添加 token
+        
         userClassifier.addSampleDirect(features, isViolation)
         saveUserState()
     }
 
-    /** 用 L1+L2 特征训练模型输出分类器 */
+     
     fun trainModelOutput(
         rawText: String, isViolation: Boolean, label: String = "",
         kwResult: com.xingshi.ai.common.ContentFilter.CheckResult? = null,
@@ -91,7 +81,7 @@ object ContentSafetyVerifier {
         val kw = kwResult ?: com.xingshi.ai.common.ContentFilter.checkFull(rawText)
         val vec = vecResult ?: com.xingshi.ai.common.ContentFilter.checkVector(rawText)
         val features = SafetyFeatureExtractor.extract(kw, vec, rawText)
-        // 批量添加 token
+        
         modelClassifier.addSampleDirect(features, isViolation)
         saveModelState()
     }
@@ -103,12 +93,9 @@ object ContentSafetyVerifier {
         }
     }
 
-    // ============ 校验 ============
+    
 
-    /**
-     * 同步校验 — L1+L2 特征 → 贝叶斯评分。
-     * 调用方应已获取 ContentFilter 结果（避免重复检查）。
-     */
+     
     fun verifyUserInput(
         rawText: String,
         kwResult: com.xingshi.ai.common.ContentFilter.CheckResult,
@@ -129,10 +116,7 @@ object ContentSafetyVerifier {
         )
     }
 
-    /**
-     * Native C++ 预测 — 使用 8 特征 float 向量 + nativeBayesianPredict。
-     * 比 token-based classifyTokens() 快 ~5x。
-     */
+     
     fun verifyUserInputNative(
         rawText: String,
         kwResult: com.xingshi.ai.common.ContentFilter.CheckResult,
@@ -147,7 +131,7 @@ object ContentSafetyVerifier {
         return SafetyScore(
             score = score,
             source = ScoreSource.USER_INPUT,
-            topTerms = emptyList(), // native 路径暂不支持可解释性
+            topTerms = emptyList(), 
             explanation = "Native(${"%.3f".format(score)})"
         )
     }
@@ -203,12 +187,12 @@ object ContentSafetyVerifier {
         return RoundTripVerdict(userScore, modelScore)
     }
 
-    // ============ 统计 ============
+    
 
     fun userStats(): String = "用户输入: ${userClassifier.totalSamples} 样本, 先验=${"%.3f".format(userClassifier.priorViolation())}"
     fun modelStats(): String = "模型输出: ${modelClassifier.totalSamples} 样本, 先验=${"%.3f".format(modelClassifier.priorViolation())}"
 
-    // ============ 私有 ============
+    
 
     private fun buildExplanation(score: Double, terms: List<Pair<String, Double>>, target: String): String {
         if (terms.isEmpty()) return "$target 无显著特征"
@@ -219,7 +203,7 @@ object ContentSafetyVerifier {
         return "$target 评分${"%.2f".format(score)}: $top"
     }
 
-    // ---- 持久化 ----
+    
 
     private fun saveUserState() {
         prefs?.edit()?.putString(KEY_USER_STATE, serializeState(userClassifier.exportState()))?.apply()

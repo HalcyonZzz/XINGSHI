@@ -23,7 +23,7 @@ class QQBotApiClient(private val tokenStore: QQBotTokenStore) {
             .connectTimeout(15, TimeUnit.SECONDS)
             .readTimeout(15, TimeUnit.SECONDS)
             .writeTimeout(15, TimeUnit.SECONDS)
-            // [PERF] 移除 BODY 日志，避免高频消息时大量 I/O 拖慢请求
+            
             .build()
     }
 
@@ -36,7 +36,7 @@ class QQBotApiClient(private val tokenStore: QQBotTokenStore) {
             .create(QQBotAuthApi::class.java)
     }
 
-    // [PERF] 缓存已认证的 RestApi，避免每条消息都重建 Retrofit/OkHttp
+    
     @Volatile
     private var cachedRestApi: QQBotRestApi? = null
     @Volatile
@@ -67,7 +67,7 @@ class QQBotApiClient(private val tokenStore: QQBotTokenStore) {
             val body = response.body()!!
             tokenStore.setAccessToken(body.accessToken)
             tokenStore.setTokenExpireAt(System.currentTimeMillis() + body.expiresIn * 1000)
-            // token 刷新后清除 API 缓存，让下一次调用重建
+            
             clearApiCache()
             body.accessToken
         }
@@ -100,10 +100,7 @@ class QQBotApiClient(private val tokenStore: QQBotTokenStore) {
         cachedTokenExpireAt = 0L
     }
 
-    /**
-     * 返回当前缓存的 access token（不含 QQBot 前缀）。
-     * 仅用于 WebSocket identify/resume，避免在回调线程读 DataStore。
-     */
+     
     fun getCachedToken(): String? {
         val token = cachedToken ?: return null
         if (token.isBlank() || System.currentTimeMillis() >= cachedTokenExpireAt - TOKEN_REFRESH_MARGIN_MS) return null
@@ -119,8 +116,8 @@ class QQBotApiClient(private val tokenStore: QQBotTokenStore) {
                     .build()
                 chain.proceed(request)
             }
-            // 不设置 authenticator：token 过期由 createAuthenticatedRestApi() 预判刷新兜底，
-            // 避免 runBlocking 阻塞 OkHttp dispatcher 线程（见 Bug #3 次因）。
+            
+            
             .build()
 
         return Retrofit.Builder()

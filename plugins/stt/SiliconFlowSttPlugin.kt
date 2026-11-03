@@ -21,11 +21,7 @@ import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.withContext
 
-/**
- * 首版官方云语音识别插件：硅基流动 / 自定义兼容转写端点。
- *
- * 只负责「音频 → 文字」，不写聊天库、不构造对话提示词；宿主负责配置、接受与排队。
- */
+ 
 class SiliconFlowSttPlugin : XingShiPlugin, SpeechRecognitionPlugin, SpeechSegmentProvider {
 
     override val id: String = "stt"
@@ -166,7 +162,7 @@ internal object SttUpload {
         } catch (e: Exception) {
             return SpeechRecognitionResult.Failure("读取录音失败：${e.message?.take(60)}")
         }
-        // 阻塞连接放到独立线程，取消时立即断开并结束协程，不等服务端响应。
+        
         return kotlinx.coroutines.suspendCancellableCoroutine { continuation ->
             val connectionRef = java.util.concurrent.atomic.AtomicReference<HttpURLConnection?>(null)
             val worker = Thread {

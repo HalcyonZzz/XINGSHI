@@ -210,7 +210,7 @@ private fun ChatDetailScreenContent(
 
     Box(modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)) {
         Column(modifier = Modifier.fillMaxSize().verticalScroll(scrollState)) {
-            // Top bar
+            
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -230,7 +230,7 @@ private fun ChatDetailScreenContent(
                 )
             }
 
-            // Companion info card
+            
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -282,7 +282,7 @@ private fun ChatDetailScreenContent(
 
             Spacer(modifier = Modifier.height(12.dp))
 
-            // Chat appearance section
+            
             SectionTitle("聊天外观")
             SettingsCard {
                 SettingsRow(title = themeText("ui_chat_detail_screen_03"), subtitle = backgroundName(settings.backgroundKey, context)) {
@@ -302,7 +302,7 @@ private fun ChatDetailScreenContent(
 
             Spacer(modifier = Modifier.height(12.dp))
 
-            // Relationship section
+            
             SectionTitle("关系与隐私")
             SettingsCard {
                 DangerRow(title = themeText("ui_chat_detail_screen_06"), color = Color(0xFFFF3B30)) {
@@ -318,7 +318,7 @@ private fun ChatDetailScreenContent(
         }
     }
 
-    // Background picker dialog
+    
     if (showBgPicker) {
         val currentKey = if (settings.useGlobalBackground) getChatBackgroundKey(context) else (settings.backgroundKey ?: "default")
         ChatBackgroundPickerDialog(
@@ -333,7 +333,7 @@ private fun ChatDetailScreenContent(
         )
     }
 
-    // Clear messages confirm dialog
+    
     if (showClearConfirm) {
         AlertDialog(
             onDismissRequest = { showClearConfirm = false },

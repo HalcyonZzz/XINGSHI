@@ -4,12 +4,7 @@ import android.content.Context
 import com.xingshi.ai.common.SecureLog
 import com.xingshi.ai.feature.notification.NotificationHelper
 
-/**
- * 厂商推送消息统一分发器。
- *
- * 负责把各厂商 SDK 收到的 token / 消息统一路由到本地通知系统，
- * 并持久化 token 供服务端推送时使用。
- */
+ 
 object PushMessageDispatcher {
 
     private const val TAG = "PushDispatcher"

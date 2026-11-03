@@ -3,12 +3,7 @@ package com.xingshi.ai.feature.qqbot.data.model
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
-/**
- * QQ 官方 Bot API v2 数据模型。
- *
- * 参考 Hermes gateway/platforms/qqbot/adapter.py 中的字段命名，
- * 与 QQ 开放平台文档保持一致。
- */
+ 
 
 @Serializable
 data class QQBotAccount(

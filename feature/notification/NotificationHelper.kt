@@ -23,7 +23,7 @@ object NotificationHelper {
                 description = CHANNEL_DESCRIPTION
                 enableLights(true)
                 enableVibration(true)
-                // OPPO / vivo 在锁屏时默认可能不显示通知内容，显式声明以提升到达率。
+                
                 lockscreenVisibility = Notification.VISIBILITY_PUBLIC
             }
             val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
@@ -74,9 +74,9 @@ object NotificationHelper {
                 val notificationId = (companionId * 1000 + System.currentTimeMillis().toInt()).toInt()
                 notify(notificationId, notification)
             } catch (e: SecurityException) {
-                // silently ignore: app lacks notification permission
+                
             } catch (e: Exception) {
-                // silently ignore: notification delivery is best-effort
+                
             }
         }
     }

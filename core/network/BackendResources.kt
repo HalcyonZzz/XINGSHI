@@ -8,7 +8,7 @@ import java.time.Instant
 fun pathSegment(value: String) = URLEncoder.encode(value, "UTF-8").replace("+", "%20")
 fun epochMillis(value: String) = runCatching { Instant.parse(value).toEpochMilli() }.getOrDefault(0L)
 
-/** Unknown outcomes keep the original pending command; only definitive rejections end it. */
+ 
 suspend fun <T> confirmConfigurationEdit(onRejected: (BackendHttpException) -> Unit, action: suspend () -> T): T =
     try { action() }
     catch (failure: BackendHttpException) {
@@ -70,7 +70,7 @@ class BackendResources(val http: BackendHttpClient) {
     suspend fun deletionStatus(operation: String) = http.json("GET", "/api/instance-deletions/${pathSegment(operation)}")
 }
 
-/** Account view only; it never selects a favorable instance to bypass audience rules. */
+ 
 interface PendingCircleOperations {
     fun all(): Map<String, String>
     fun put(id: String, value: String)

@@ -43,7 +43,7 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
                 if (companions.isEmpty()) {
                     flowOf(emptyList())
                 } else {
-                    // 预热：为每个 companion 加载最近一页消息到 ChatRepository 内存缓存
+                    
                     viewModelScope.launch {
                         companions.forEach { companion ->
                             if (chatRepository.getCachedRecent(companion.id) == null) {

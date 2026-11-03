@@ -175,7 +175,7 @@ private fun ContactsScreenContent(
                     contentPadding = PaddingValues(vertical = 8.dp, horizontal = 12.dp),
                     verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    // 通讯录标题
+                    
                     item {
                         Text(
                             text = themeText("ui_contacts_screen_01"),

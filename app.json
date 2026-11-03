@@ -1,10 +1,10 @@
 {
   "applicationId": "com.xingshi.ai",
-  "versionCode": 18,
-  "versionName": "0.1.5",
+  "versionCode": 21,
+  "versionName": "0.1.8",
   "minSdk": 26,
-  "apkUrl": "https://github.com/HalcyonZzz/XINGSHI/releases/download/app-v0.1.5-18/XINGSHI-0.1.5.apk",
-  "sizeBytes": 5531134,
-  "sha256": "289940469f30642384c2631b63770b146660460bd112286139b51ae31c961246",
+  "apkUrl": "https://github.com/HalcyonZzz/XINGSHI/releases/download/app-v0.1.8-21/XINGSHI-0.1.8.apk",
+  "sizeBytes": 5536422,
+  "sha256": "bde8810baab279652a1940c495f284988c7ad742a3ca675592eec6d1b5d4a7c7",
   "releaseNotes": ""
 }

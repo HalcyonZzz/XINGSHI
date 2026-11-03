@@ -5,11 +5,7 @@ import com.xingshi.ai.common.SecureLog
 import com.xingshi.ai.push.PushConfig
 import com.xingshi.ai.push.dispatch.PushMessageDispatcher
 
-/**
- * OPPO PUSH 初始化器。
- *
- * SDK 版本：3.0.0（本地 aar）
- */
+ 
 object OppoPushInitializer {
 
     private const val TAG = "OppoPush"

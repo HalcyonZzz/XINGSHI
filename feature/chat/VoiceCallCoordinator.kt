@@ -35,10 +35,7 @@ import kotlinx.coroutines.withTimeoutOrNull
 
 private const val CALL_REPLY_TIMEOUT_MS = 60_000L
 
-/**
- * 前台语音通话宿主：准备检查、活动通话单例、轮次控制、通话卡片落库。
- * 正式结果按原通话与轮次从应用级后端消费者交回，再进行端侧播放。
- */
+ 
 object VoiceCallCoordinator {
 
     enum class Prepare {
@@ -51,7 +48,7 @@ object VoiceCallCoordinator {
         val callId: String,
         val companionId: Long,
         val mode: String,
-        /** 单调时钟起点：界面时长按 elapsedRealtime 计算，不靠重组次数累加。 */
+         
         val startedElapsedMs: Long = android.os.SystemClock.elapsedRealtime()
     )
 
@@ -94,23 +91,23 @@ object VoiceCallCoordinator {
     @Volatile
     private var lastVideoCapturedAt: Long = 0L
 
-    // 当前轮已接受的本人消息 id：正式回复必须按它匹配，不能拿回复 id 推断轮次。
+    
     @Volatile
     private var currentRoundInputMessageId: Long = 0L
 
     private val starting = AtomicBoolean(false)
 
-    /** 当前通话的接受窗口：挂断与入队在同一守卫临界区里决出先后。 */
+     
     @Volatile
     private var acceptWindowOpen: AtomicBoolean? = null
 
-    // 本通话唯一的接受守卫：挂断与真实入队必须共用同一把锁裁决先后。
+    
     @Volatile
     private var sendGuard: PluginSendGuard? = null
 
     fun isActiveFor(companionId: Long): Boolean = _active.value?.companionId == companionId
 
-    /** 重播与新通话共用同一原子资格，整个合成/播放阶段均不开放采集。 */
+     
     fun tryBeginReplay(): Boolean {
         if (!starting.compareAndSet(false, true)) return false
         if (_active.value != null) {
@@ -154,7 +151,7 @@ object VoiceCallCoordinator {
             starting.set(false)
             return false
         }
-        // 每次通话独立窗口与接受守卫：旧通话的迟到提交不能借新通话的资格被接受。
+        
         val acceptWindow = AtomicBoolean(true)
         acceptWindowOpen = acceptWindow
         val callGuard = PluginSendGuard { acceptWindow.get() }
@@ -237,7 +234,7 @@ object VoiceCallCoordinator {
                 }
             },
             videoRound = if (video && camera != null) { segment, merge ->
-                // 产品路径复用同一单轮汇合器：抓帧一次并在失败重试时复用原帧，STT/Vision 并行。
+                
                 var capturedFrame: java.io.File? = null
                 val turn = VideoCallTurnCoordinator(
                     recognize = { runVideoSpeech(app, segment) },
@@ -328,7 +325,7 @@ object VoiceCallCoordinator {
             onStageError = { _error.value = it }
         )
         this.controller = controller
-        // 整次通话的能力资格：卸载/更新任一 STT/TTS/Vision 提供者都结束采集、播放与等待。
+        
         capabilityWatchReleased = false
         val manager = PluginFramework.manager()
         val watchedIds = listOfNotNull(
@@ -338,14 +335,14 @@ object VoiceCallCoordinator {
         ).distinct()
         capabilityWatchIds = watchedIds
         capabilityWatch = manager?.registerOptionalCapabilityWatch(watchedIds) {
-            // 旧通话的撤销回调不得结束已经开始的下一通电话。
+            
             if (!capabilityWatchReleased && _active.value?.callId == callId) hangup()
         }
         if (manager != null && watchedIds.isNotEmpty() && capabilityWatch == null) {
-            // 启动与登记之间资格已失效：立即按挂断收尾，不再进入任意一轮外部调用。
+            
             hangup()
         }
-        // 同状态长时间等待/静音也要有有界活跃证据，恢复时长不能用最后状态时间当精确值。
+        
         heartbeatJob = scope.launch(Dispatchers.IO) {
             while (_active.value != null) {
                 runCatching { VoiceCallRecovery.heartbeat(app) }
@@ -362,7 +359,7 @@ object VoiceCallCoordinator {
                 player.release()
                 runCatching { segmenter?.release() }
                 runCatching { camera?.stop() }
-                // 正式结束提交不可取消且只有成功（或已存在卡片）才清恢复责任。
+                
                 val cardSaved = kotlinx.coroutines.withContext(kotlinx.coroutines.NonCancellable) {
                     saveCallCard(app, controller, mode, backendConsumer)
                 }
@@ -406,7 +403,7 @@ object VoiceCallCoordinator {
     }
 
     fun hangup() {
-        // 先在同一守卫临界区裁决接受与撤销，再取消本轮执行：已先接受的仍按原责任收尾。
+        
         sendGuard?.revoke()
         acceptWindowOpen?.set(false)
         controller?.hangup()
@@ -415,7 +412,7 @@ object VoiceCallCoordinator {
         runningJob?.cancel()
     }
 
-    /** 原账号的卡片和结束控制完成耐久登记后，调用方才能关闭数据库及切换账号。 */
+     
     suspend fun stopForAccountSwitch() {
         val job = runningJob
         hangup()
@@ -440,7 +437,7 @@ object VoiceCallCoordinator {
         callId: String,
         inputMessageId: Long
     ): CallTurnHandoff.Reply? =
-        // 只等待本 call_id 且属于本轮原输入的正式结果（页面已用唯一终结链落库并交回消息身份）。
+        
         CallTurnHandoff.awaitReply(
             callId = callId,
             companionId = companionId,
@@ -450,7 +447,7 @@ object VoiceCallCoordinator {
 
     private fun metadataSourceFor(video: Boolean): String = if (video) "VIDEO_CALL" else "VOICE_CALL"
 
-    /** 本轮原转写/观察/来源/采集时点与接受返回的同一条本人消息持久绑定。 */
+     
     private suspend fun saveTurnMetadata(
         context: Context,
         companionId: Long,
@@ -485,7 +482,7 @@ object VoiceCallCoordinator {
     ): Boolean {
         val record = controller.record ?: return false
         val seconds = (record.durationMs / 1000).coerceAtLeast(0)
-        // 稳定标记：显示时按主题语言渲染，不把固定中文写进消息正文。
+        
         val text = "call-card|$mode|$seconds"
         return runCatching {
             val consumer = backendConsumer ?: return@runCatching false

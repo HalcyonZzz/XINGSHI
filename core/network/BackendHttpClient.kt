@@ -32,7 +32,7 @@ class BackendHttpException(
     400, 413, 422 -> "请求内容不符合要求，请检查后重试"
     else -> "请求失败（$status）"
 }) {
-    /** 业务已明确拒绝：重试同一请求不会改变结果，不得再按未知结果查证。 */
+     
     val definitiveRejection: Boolean get() = status in setOf(400, 403, 404, 409, 413, 422)
 }
 class StaleBackendSession : IllegalStateException("账号连接已切换，请在当前账号重试")
@@ -49,7 +49,7 @@ class OkHttpBackendTransport : BackendTransport {
     }
 }
 
-/** One client per authentication session. Refresh is single-flight; writes replay unchanged once. */
+ 
 class BackendHttpClient(
     origin: String,
     private val sessions: BackendSessionStore,

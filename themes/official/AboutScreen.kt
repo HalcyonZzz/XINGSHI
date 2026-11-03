@@ -255,7 +255,7 @@ private fun AboutScreenContent(
 
             Spacer(modifier = Modifier.height(4.dp))
 
-            // 系统读取的真实版本，不写死版本号
+            
             Text(
                 text = themeText(
                     "app_update_version_fmt",

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <paths>
-    <!-- Only expose specific subdirectories, not the entire filesystem -->
+    
     <files-path name="avatars" path="avatars/"/>
     <files-path name="app_update" path="app_update/"/>
     <cache-path name="shared_images" path="shared_images/"/>

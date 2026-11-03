@@ -8,10 +8,7 @@ import androidx.security.crypto.EncryptedSharedPreferences
 import androidx.security.crypto.MasterKey
 import java.security.MessageDigest
 
-/**
- * 设备级封禁管理器
- * 使用设备唯一标识符确保封禁绑定到设备
- */
+ 
 object BanManager {
 
     private const val PREFS_NAME = "ban_manager_prefs_v3"
@@ -25,7 +22,7 @@ object BanManager {
     private const val KEY_QUIZ_ATTEMPTS = "quiz_attempts"
     private const val KEY_LAST_VIOLATION_LEVEL = "last_violation_level"
 
-    // 累犯倍率：第1次x1，第2次x1.5，第3次x2，第4次及以上x2.5（封顶）
+    
     private const val MULTIPLIER_1 = 1.0
     private const val MULTIPLIER_2 = 1.5
     private const val MULTIPLIER_3 = 2.0
@@ -56,7 +53,7 @@ object BanManager {
         val examples: String
     )
 
-    /** 明确的封禁界限 */
+     
     fun getViolationLevels(): List<ViolationLevelInfo> = listOf(
         ViolationLevelInfo(ContentFilter.ViolationLevel.LOW, "轻度违规", 1,
             "试探性违规，如假设性提问、虚构场景试探",
@@ -79,8 +76,8 @@ object BanManager {
     )
 
     private fun getPrefs(context: Context): SharedPreferences {
-        // 🔒 SecurityConstants.Level.HIGH: 封禁数据使用 EncryptedSharedPreferences
-        //    防止 root 用户直接修改 XML 文件绕过封禁
+        
+        
         return try {
             val masterKey = MasterKey.Builder(context)
                 .setKeyScheme(MasterKey.KeyScheme.AES256_GCM)
@@ -93,15 +90,13 @@ object BanManager {
                 EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
             )
         } catch (e: Exception) {
-            // 回退到明文 — 记录安全事件
+            
             SecureLog.security("BanManager: EncryptedSharedPreferences failed, falling back to plain")
             context.applicationContext.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
         }
     }
 
-    /**
-     * 获取设备唯一标识符
-     */
+     
     fun getDeviceId(context: Context): String {
         val prefs = getPrefs(context)
         val savedId = prefs.getString(KEY_DEVICE_ID, null)
@@ -132,9 +127,7 @@ object BanManager {
         return bytes.joinToString("") { "%02x".format(it) }
     }
 
-    /**
-     * 计算累犯倍率
-     */
+     
     private fun getMultiplier(violationCount: Int): Double {
         return when (violationCount) {
             1 -> MULTIPLIER_1
@@ -144,9 +137,7 @@ object BanManager {
         }
     }
 
-    /**
-     * 计算答题数量：违规等级越严重、次数越多，题目越多
-     */
+     
     fun getQuizQuestionCount(violationCount: Int, level: ContentFilter.ViolationLevel): Int {
         val baseByLevel = when (level) {
             ContentFilter.ViolationLevel.LOW -> 5
@@ -161,9 +152,7 @@ object BanManager {
         return (baseByLevel + repeatBonus).coerceAtMost(60)
     }
 
-    /**
-     * 检查设备是否被封禁
-     */
+     
     fun isBanned(context: Context): Boolean {
         val prefs = getPrefs(context)
         val isBanned = prefs.getBoolean(KEY_IS_BANNED, false)
@@ -173,7 +162,7 @@ object BanManager {
         return if (isBanned && banUntil > now) {
             true
         } else if (isBanned && banUntil <= now) {
-            // 封禁已过期，但如果需要答题且未通过，仍然视为封禁
+            
             val quizPassed = prefs.getBoolean(KEY_QUIZ_PASSED, false)
             if (!quizPassed) {
                 true
@@ -186,9 +175,7 @@ object BanManager {
         }
     }
 
-    /**
-     * 获取封禁信息（实时计算）
-     */
+     
     fun getBanInfo(context: Context): BanInfo {
         val prefs = getPrefs(context)
         val banUntil = prefs.getLong(KEY_BAN_UNTIL, 0)
@@ -248,9 +235,7 @@ object BanManager {
         }
     }
 
-    /**
-     * 记录违规并执行封禁
-     */
+     
     @Synchronized
     fun recordViolation(context: Context, level: ContentFilter.ViolationLevel): BanInfo {
         if (level == ContentFilter.ViolationLevel.NONE) {
@@ -288,9 +273,7 @@ object BanManager {
         return getBanInfo(context)
     }
 
-    /**
-     * 通过答题解除封禁
-     */
+     
     fun passQuiz(context: Context) {
         getPrefs(context).edit()
             .putBoolean(KEY_QUIZ_PASSED, true)
@@ -298,9 +281,7 @@ object BanManager {
             .apply()
     }
 
-    /**
-     * 记录答题尝试次数
-     */
+     
     fun recordQuizAttempt(context: Context) {
         val prefs = getPrefs(context)
         val attempts = prefs.getInt(KEY_QUIZ_ATTEMPTS, 0) + 1
@@ -311,9 +292,7 @@ object BanManager {
         return getPrefs(context).getInt(KEY_QUIZ_ATTEMPTS, 0)
     }
 
-    /**
-     * 手动封禁（管理员功能）
-     */
+     
     fun banUser(context: Context, days: Long, reason: String = "") {
         val prefs = getPrefs(context)
         val now = System.currentTimeMillis()
@@ -328,9 +307,7 @@ object BanManager {
             .apply()
     }
 
-    /**
-     * 解除封禁（管理员功能）
-     */
+     
     fun unbanUser(context: Context) {
         getPrefs(context).edit()
             .putBoolean(KEY_IS_BANNED, false)
@@ -339,16 +316,12 @@ object BanManager {
             .apply()
     }
 
-    /**
-     * 重置所有违规记录（谨慎使用）
-     */
+     
     fun resetAll(context: Context) {
         getPrefs(context).edit().clear().apply()
     }
 
-    /**
-     * 获取违规历史
-     */
+     
     fun getViolationHistory(context: Context): List<ViolationRecord> {
         val prefs = getPrefs(context)
         val history = prefs.getString(KEY_VIOLATION_HISTORY, "") ?: ""

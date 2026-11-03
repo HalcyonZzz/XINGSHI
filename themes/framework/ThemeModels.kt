@@ -3,16 +3,16 @@ package com.xingshi.ai.theme.framework
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 
-/** 主题框架 API 版本。主题清单的兼容范围以此为准。 */
+ 
 const val FRAMEWORK_API = 1
 
-/** 官方主题固定 ID，内置且始终保留。 */
+ 
 const val OFFICIAL_THEME_ID = "official"
 
-/** 官方默认语言，逐项回退的最终兜底。 */
+ 
 const val DEFAULT_LANGUAGE = "zh-CN"
 
-/** 官方主题内置语言；主题可在此基础上新增语言。 */
+ 
 val OFFICIAL_LANGUAGES: List<String> = listOf("zh-CN", "zh-TW", "en", "ja", "ko")
 
 val LANGUAGE_LABELS: Map<String, String> = mapOf(
@@ -32,15 +32,15 @@ data class ThemeNavItem(
 
 @Serializable
 data class ThemeNavigation(
-    /** bottom | top */
+     
     val position: String = "bottom",
-    /** 为空表示沿用官方顺序 */
+     
     val items: List<ThemeNavItem> = emptyList()
 )
 
 @Serializable
 data class ThemeInputBar(
-    /** 发送按钮是否放到输入栏左侧（改变排版而不改变动作标识） */
+     
     val sendOnLeft: Boolean = false
 )
 
@@ -75,7 +75,7 @@ data class ThemeManifest(
     val version: String = "1.0.0",
     val minFramework: Int = FRAMEWORK_API,
     val maxFramework: Int = FRAMEWORK_API,
-    /** 可选代码入口类名（实现 ThemeCodeUi，需宿主 Compose 工具链，见 README） */
+     
     val entry: String = "",
     val languages: List<String> = emptyList(),
     val navigation: ThemeNavigation = ThemeNavigation(),
@@ -130,7 +130,7 @@ object ThemeManifests {
 @Serializable
 data class ThemeCatalogEntry(
     val manifest: ThemeManifest,
-    /** 内置样例主题包在 assets 中的路径（市场目录随官方主题附带） */
+     
     val asset: String = "",
     val changelog: String = "",
 )

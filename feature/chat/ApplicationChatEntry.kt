@@ -6,11 +6,7 @@ import com.xingshi.ai.plugins.PluginSendGuard
 import com.xingshi.ai.plugins.api.ChannelRequestRef
 import kotlinx.coroutines.currentCoroutineContext
 
-/**
- * 应用级插件发送口：页面未创建时（例如只有通道图片入站）插件结果仍进入统一对话入口。
- * 路由来自原请求时随本次入队保留，回复按该请求回原会话；不创建 ChatViewModel。
- * 与页面入口共用同一取消/接受合同：实际入队在框架给出的 PluginSendGuard 临界区内完成。
- */
+ 
 class ApplicationChatEntry(private val app: Application) : ChatSendEntry {
     private val partition = com.xingshi.ai.common.AccountStorage.partition
 

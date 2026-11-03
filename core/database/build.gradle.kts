@@ -18,7 +18,7 @@ android {
         targetCompatibility = JavaVersion.VERSION_17
     }
 
-    // 导出 Room Schema JSON，用于 CI 检测 Entity 变化导致的 Schema 不兼容
+    
     ksp {
         arg("room.schemaLocation", "$projectDir/schemas")
     }
@@ -46,7 +46,7 @@ dependencies {
     testImplementation(libs.junit)
 }
 
-// Room SQLite verifier needs a temp dir with executable permissions.
+
 val sqliteTmpDir = layout.buildDirectory.dir("sqlite-tmp").get().asFile
 
 fun configureRoomSqliteTempDir() {
@@ -62,7 +62,7 @@ tasks.matching { it.name.startsWith("ksp") }.configureEach {
     }
 }
 
-// Workaround for KSP incremental cache corruption
+
 tasks.withType<Delete>().configureEach {
     delete(layout.buildDirectory.dir("kspCaches"))
 }

@@ -18,7 +18,7 @@ import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 
-/** 通用通道承载：不为任何具体平台添加 Service、类名或轮询实现。 */
+ 
 class PluginChannelService : Service() {
 
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
@@ -26,7 +26,7 @@ class PluginChannelService : Service() {
     override fun onCreate() {
         super.onCreate()
         PluginFramework.init(application)
-        // 通道状态驱动前台承载：无连接尝试时立即退出，避免常驻空白通知
+        
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
             startForeground(NOTIFICATION_ID, notification(), android.content.pm.ServiceInfo.FOREGROUND_SERVICE_TYPE_SPECIAL_USE)
         } else {

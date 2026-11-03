@@ -64,8 +64,8 @@ class PluginModelResolver(
     suspend fun resolve(vision: Boolean): PluginModel {
         val main = mainConfig()?.resolved()
         if (!vision) return modelFor(main)
-        // 视觉调用统一走同一条降级链：优先视觉模型，失败降级主模型，未配置视觉模型就直接用主模型；
-        // 两者都失败时从同一个出口抛出视觉失效，宿主才能统一提示。
+        
+        
         val candidates = listOfNotNull(visionConfig()?.resolved(), main)
         if (candidates.isEmpty()) return UnconfiguredPluginModel
         return FallbackPluginModel(candidates.map(::modelFor))

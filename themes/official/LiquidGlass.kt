@@ -56,9 +56,9 @@ fun Modifier.frostedGlassNav(
         .glassCaustics(isDark, intensity)
 }
 
-// ============================================================
-// 主背景 - 粉色系玻璃效果
-// ============================================================
+
+
+
 
 private fun Modifier.glassBackground(isDark: Boolean, intensity: Float): Modifier {
     return this.drawBehind {
@@ -145,7 +145,7 @@ private fun Modifier.navGlassBackground(isDark: Boolean, intensity: Float): Modi
     }
 }
 
-// 优化后：从80+80条线减少到15+15条，性能提升5倍
+
 private fun DrawScope.drawOptimizedFrostedTexture(
     width: Float,
     height: Float,
@@ -179,9 +179,9 @@ private fun DrawScope.drawOptimizedFrostedTexture(
     }
 }
 
-// ============================================================
-// 边框
-// ============================================================
+
+
+
 
 private fun Modifier.glassBorder(isDark: Boolean, shape: Shape, intensity: Float): Modifier {
     val i = intensity.coerceIn(0f, 1.5f)
@@ -193,9 +193,9 @@ private fun Modifier.glassBorder(isDark: Boolean, shape: Shape, intensity: Float
     )
 }
 
-// ============================================================
-// 边缘高光 - 优化后减少绘制调用
-// ============================================================
+
+
+
 
 private fun Modifier.glassEdgeHighlight(isDark: Boolean, intensity: Float): Modifier {
     return this.drawWithContent {
@@ -294,9 +294,9 @@ private fun Modifier.glassEdgeHighlight(isDark: Boolean, intensity: Float): Modi
     }
 }
 
-// ============================================================
-// 焦散效果 - 优化后减少渐变计算
-// ============================================================
+
+
+
 
 private fun Modifier.glassCaustics(isDark: Boolean, intensity: Float): Modifier {
     return this.drawWithContent {

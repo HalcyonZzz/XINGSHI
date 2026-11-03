@@ -1,26 +1,17 @@
 package com.xingshi.ai.common.safety
 
-/**
- * 安全评分结果 — 概率值 + 风险等级 + 可解释性。
- *
- * 阈值定义（可配置）：
- *   score < 0.3  → SAFE（放行）
- *   score 0.3-0.85 → SUSPICIOUS（限频/标记但不拦截）
- *   score > 0.85  → DANGEROUS（拦截）
- *
- * 阈值从0.7提高到0.85：0.7太敏感，先验0.3时正常消息也可能超0.7
- */
+ 
 data class SafetyScore(
-    /** 0.0 ~ 1.0，P(违规 | 文本) */
+     
     val score: Double,
 
-    /** 评分来源 */
+     
     val source: ScoreSource,
 
-    /** 贡献最大的特征词及其贡献度（正 = 推高违规概率，负 = 拉低） */
+     
     val topTerms: List<Pair<String, Double>> = emptyList(),
 
-    /** 可读解释 */
+     
     val explanation: String = ""
 ) {
     val riskLevel: RiskLevel
@@ -49,14 +40,12 @@ enum class RiskLevel { SAFE, SUSPICIOUS, DANGEROUS }
 
 enum class ScoreSource { USER_INPUT, MODEL_OUTPUT, COMBINED }
 
-/**
- * 双向校验结果 — 用户输入 + 模型输出联合判定。
- */
+ 
 data class RoundTripVerdict(
     val userScore: SafetyScore,
     val modelScore: SafetyScore
 ) {
-    /** 联合风险等级：取两端最高 */
+     
     val overallLevel: RiskLevel
         get() = when {
             userScore.isDangerous || modelScore.isDangerous -> RiskLevel.DANGEROUS

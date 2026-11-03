@@ -82,7 +82,7 @@ fun QuizScreen(
             },
             onRetry = {
                 val newQuestions = QuizBank.getRandomQuestions(questionCount)
-                // Restart
+                
                 currentIndex = 0
                 selectedOption = -1
                 showResult = false
@@ -100,7 +100,7 @@ fun QuizScreen(
 
     val currentQuestion = questions.getOrNull(currentIndex)
     if (currentQuestion == null) {
-        // All questions answered
+        
         val requiredCorrect = (questions.size * 0.8).toInt().coerceAtLeast(1)
         quizPassed = correctCount >= requiredCorrect
         quizFinished = true
@@ -193,7 +193,7 @@ fun QuizScreen(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // Question card
+            
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -214,7 +214,7 @@ fun QuizScreen(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // Options
+            
             currentQuestion.options.forEachIndexed { index, option ->
                 val isSelected = selectedOption == index
                 val bgColor = when {
@@ -301,7 +301,7 @@ fun QuizScreen(
 
             Spacer(modifier = Modifier.weight(1f))
 
-            // Explanation after answer
+            
             AnimatedVisibility(visible = showResult) {
                 Column {
                     Box(

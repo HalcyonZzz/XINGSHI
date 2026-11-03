@@ -145,9 +145,7 @@ class WeChatSdkClientManager(
         }
     }
 
-    /**
-     * 通知某个用户的 contextToken 已更新，需要重建 client
-     */
+     
     @Volatile
     private var stale = false
 

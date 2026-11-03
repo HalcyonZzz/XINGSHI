@@ -38,8 +38,10 @@ class GroupChatViewModel(
     private val groupId: Long
 ) : AndroidViewModel(application) {
 
-    // 改用应用级作用域：退出群聊页面后消息落库仍能继续完成，重新进入群聊即可看到。
-    private val applicationScope = com.xingshi.ai.common.ApplicationScopeProvider.scope
+     
+    private val account = GroupDeliveryAccount.capture { name ->
+        getApplication<Application>().getSharedPreferences(name, android.content.Context.MODE_PRIVATE)
+    }
 
     private val database = AppDatabase.getDatabase(application)
     private val groupMessageRepository = GroupMessageRepository(database.groupMessageDao())
@@ -71,20 +73,21 @@ class GroupChatViewModel(
         val snapshot: GroupConversationSnapshot,
         val sourceMessageId: Long,
         val targets: Set<Long>,
-        val selection: GroupMentions
+        val selection: GroupMentions,
+         
+        val account: GroupDeliveryAccount
     )
 
-    // 每条未受理消息各自保留责任：后续发送成功/失败不能抹掉更早的待重试投递。
+    
     private val pendingDeliveries = java.util.LinkedHashMap<Long, PendingDelivery>()
     private val _deliveryRetryAvailable = MutableStateFlow(false)
-    /** 未受理的群投递保留原消息与提及目标，重试只补发失败的回复请求，不重存原话。 */
+     
     val deliveryRetryAvailable: StateFlow<Boolean> = _deliveryRetryAvailable.asStateFlow()
 
     private fun retainPending(pending: PendingDelivery) {
         pendingDeliveries[pending.sourceMessageId] = pending
         _deliveryRetryAvailable.value = pendingDeliveries.isNotEmpty()
-        GroupPendingDeliveryStore.save(
-            getApplication(),
+        pending.account.deliveries.save(
             GroupPendingDeliveryStore.Pending(
                 groupId = pending.snapshot.groupId,
                 messageId = pending.sourceMessageId,
@@ -97,16 +100,17 @@ class GroupChatViewModel(
     }
 
     private fun releasePending(sourceMessageId: Long) {
-        pendingDeliveries.remove(sourceMessageId)
-        GroupPendingDeliveryStore.remove(getApplication(), sourceMessageId)
+        val pending = pendingDeliveries.remove(sourceMessageId)
+        (pending?.account ?: account).deliveries.remove(sourceMessageId)
         _deliveryRetryAvailable.value = pendingDeliveries.isNotEmpty()
         if (pendingDeliveries.isEmpty()) _deliveryIssue.value = null
     }
 
-    /** 重建 VM 后只恢复本群责任；跨群历史不得借当前 VM 的群身份重组。 */
+     
     private fun restorePendingDeliveries() {
-        applicationScope.launch(Dispatchers.IO) {
-            val restored = GroupPendingDeliveryStore.load(getApplication())
+        val owner = account
+        GroupDeliveryRuntime.launch {
+            val restored = owner.deliveries.load()
                 .filter { it.groupId == groupId }
             if (restored.isEmpty()) return@launch
             restored.forEach { saved ->
@@ -116,7 +120,8 @@ class GroupChatViewModel(
                     snapshot = (saved.snapshot ?: buildSnapshot(group, all)).copy(sourceMessageId = saved.messageId),
                     sourceMessageId = saved.messageId,
                     targets = saved.targets,
-                    selection = GroupMentions(saved.mentionedIds, saved.everyone)
+                    selection = GroupMentions(saved.mentionedIds, saved.everyone),
+                    account = owner
                 )
             }
             _deliveryRetryAvailable.value = pendingDeliveries.isNotEmpty()
@@ -162,7 +167,7 @@ class GroupChatViewModel(
 
     fun retryDelivery() {
         if (!retryInFlight.compareAndSet(false, true)) return
-        applicationScope.launch(Dispatchers.IO) {
+        GroupDeliveryRuntime.launch {
             try {
                 sendLock.withLock {
                     val gateway = ServiceRegistry.get(GroupConversationGateway::class.java)
@@ -172,6 +177,8 @@ class GroupChatViewModel(
                     }
                     for (candidate in pendingDeliveries.values.toList()) {
                         val pending = pendingDeliveries[candidate.sourceMessageId] ?: continue
+                        
+                        if (!pending.account.isCurrent()) continue
                         retryOne(gateway, pending)
                     }
                 }
@@ -186,11 +193,11 @@ class GroupChatViewModel(
             gateway.stage(pending.snapshot.copy(messages = pending.snapshot.messages.map { message ->
                 if (message.id == pending.sourceMessageId) message.copy(mentionedCompanionIds = pending.selection.targets(pending.snapshot.members.map { it.companionId })) else message
             }))
-            if (!syncDeclaredScope(gateway, pending.snapshot.groupId)) {
+            if (!syncDeclaredScope(gateway, pending.account, pending.snapshot.groupId)) {
                 _deliveryIssue.value = "failed"
                 return false
             }
-            val boundary = confirmedBoundary(pending.snapshot.groupId)
+            val boundary = confirmedBoundary(pending.account, pending.snapshot.groupId)
             gateway.synchronize(
                 if (boundary > 0L) {
                     pending.snapshot.copy(messages = pending.snapshot.messages.filter { it.id > boundary })
@@ -199,7 +206,7 @@ class GroupChatViewModel(
                 }
             )
             if (pending.targets.isEmpty()) {
-                confirmBoundary(pending.sourceMessageId, pending.snapshot.groupId)
+                confirmBoundary(pending.account, pending.sourceMessageId, pending.snapshot.groupId)
                 releasePending(pending.sourceMessageId)
                 return true
             }
@@ -219,7 +226,7 @@ class GroupChatViewModel(
                 }
             }
             if (failed.isEmpty()) {
-                confirmBoundary(pending.sourceMessageId, pending.snapshot.groupId)
+                confirmBoundary(pending.account, pending.sourceMessageId, pending.snapshot.groupId)
                 releasePending(pending.sourceMessageId)
                 if (_mentions.value == pending.selection) clearMentions()
                 true
@@ -248,35 +255,37 @@ class GroupChatViewModel(
             val total = groupMessageRepository.getMessageCount(groupId)
             _hasMore.value = _messageLimit.value < total
         }
-        // 当前群实例的合法增量：按已知本地边界确认进度，不把未授权历史当默认全量。
-        applicationScope.launch(Dispatchers.IO) {
+        
+        val owner = account
+        GroupDeliveryRuntime.launch {
             runCatching {
                 val gateway = ServiceRegistry.get(GroupConversationGateway::class.java) ?: return@runCatching
-                syncDeclaredScope(gateway)
+                syncDeclaredScope(gateway, owner)
             }.onFailure { Log.e("GroupChatViewModel", "group incremental sync failed", it) }
         }
     }
 
-    /** 声明范围同步：complete 才确认终点；未确认不推进发送。 */
-    private fun confirmedBoundary(targetGroupId: Long = groupId): Long =
-        getApplication<Application>().getSharedPreferences("group_sync_boundary", android.content.Context.MODE_PRIVATE)
-            .getLong("group_$targetGroupId", 0L)
+     
+    private fun confirmedBoundary(account: GroupDeliveryAccount, targetGroupId: Long = groupId): Long =
+        account.boundary.getLong("group_$targetGroupId", 0L)
 
-    private fun confirmBoundary(throughMessageId: Long, targetGroupId: Long = groupId) {
+    private fun confirmBoundary(account: GroupDeliveryAccount, throughMessageId: Long, targetGroupId: Long = groupId) {
         if (throughMessageId <= 0L) return
-        val prefs = getApplication<Application>()
-            .getSharedPreferences("group_sync_boundary", android.content.Context.MODE_PRIVATE)
+        val prefs = account.boundary
         if (throughMessageId <= prefs.getLong("group_$targetGroupId", 0L)) return
         prefs.edit().putLong("group_$targetGroupId", throughMessageId).apply()
     }
 
-    /** 只承认网关返回的确认终点；null 或不完整都不推进，也不触发回复。 */
-    private suspend fun syncDeclaredScope(gateway: GroupConversationGateway, targetGroupId: Long = groupId): Boolean {
-        val known = confirmedBoundary(targetGroupId)
+     
+    private suspend fun syncDeclaredScope(
+        gateway: GroupConversationGateway,
+        account: GroupDeliveryAccount,
+        targetGroupId: Long = groupId
+    ): Boolean {
+        val known = confirmedBoundary(account, targetGroupId)
         val progress = gateway.synchronizeDelta(targetGroupId, known) ?: return false
         if (!progress.complete) return false
-        val handled = getApplication<Application>()
-            .getSharedPreferences("group_member_events", android.content.Context.MODE_PRIVATE)
+        val handled = account.memberEvents
             .getStringSet("handled", emptySet()).orEmpty().toMutableSet()
         gateway.memberEvents(targetGroupId).forEach { event ->
             val key = event.operationId.ifBlank {
@@ -295,13 +304,11 @@ class GroupChatViewModel(
                 com.xingshi.ai.domain.GroupMemberEventType.LEAVE -> members -= event.companionId
             }
             chatGroupRepository.updateGroup(group.copy(companionIds = members.joinToString(",")))
-            getApplication<Application>()
-                .getSharedPreferences("group_member_events", android.content.Context.MODE_PRIVATE)
-                .edit().putStringSet("handled", handled).apply()
+            account.memberEvents.edit().putStringSet("handled", handled).apply()
         }
         if (progress.knownThroughMessageId > known) {
             gateway.confirmSyncProgress(targetGroupId, progress.knownThroughMessageId)
-            confirmBoundary(progress.knownThroughMessageId, targetGroupId)
+            confirmBoundary(account, progress.knownThroughMessageId, targetGroupId)
         }
         return true
     }
@@ -394,7 +401,11 @@ class GroupChatViewModel(
         format: com.xingshi.ai.database.model.FileFormat = com.xingshi.ai.database.model.FileFormat.TEXT,
         attachment: String = ""
     ) {
-        applicationScope.launch(Dispatchers.IO) {
+        
+        val owner = GroupDeliveryAccount.capture { name ->
+            getApplication<Application>().getSharedPreferences(name, android.content.Context.MODE_PRIVATE)
+        }
+        GroupDeliveryRuntime.launch {
             sendLock.withLock {
                 var savedMessageId: Long? = null
                 var frozenTargets: Set<Long> = emptySet()
@@ -428,8 +439,8 @@ class GroupChatViewModel(
                     )
                     val messageId = groupMessageRepository.sendMessage(message)
                     savedMessageId = messageId
-                    // 快照必须包含本地原话与历史：网关缺失、同步失败或部分失败时，
-                    // 重试仍能按原 messageId/目标补发，而不是拿空历史另造一轮。
+                    
+                    
                     val snapshotHistory = (history + message.copy(id = messageId)).map { row ->
                         GroupHistoryMessage(
                             id = row.id,
@@ -443,32 +454,32 @@ class GroupChatViewModel(
                     }
                     val snapshot = GroupConversationSnapshot(group.id, group.name, group.createdAt, members, snapshotHistory, messageId)
                     frozenSnapshot = snapshot
-                    // 网络开始前保留原消息、目标及快照；重启补交不能依赖 VM 内存。
-                    retainPending(PendingDelivery(snapshot, messageId, targets.toSet(), selection))
+                    
+                    retainPending(PendingDelivery(snapshot, messageId, targets.toSet(), selection, owner))
                     chatGroupRepository.updateTimestamp(groupId)
                     val gateway = ServiceRegistry.get(GroupConversationGateway::class.java)
                     if (gateway == null) {
-                        // 本地保存不等于后端已受理：保留原话、目标与重试责任。
-                        retainPending(PendingDelivery(snapshot, messageId, targets.toSet(), selection))
+                        
+                        retainPending(PendingDelivery(snapshot, messageId, targets.toSet(), selection, owner))
                         _deliveryIssue.value = "unavailable"
                         return@withLock
                     }
-                    // 发送前必须等待声明范围同步完成；失败保留同步责任（即使没有 @ 目标）。
+                    
                     gateway.stage(snapshot)
-                    if (!syncDeclaredScope(gateway)) {
-                        retainPending(PendingDelivery(snapshot, messageId, targets.toSet(), selection))
+                    if (!syncDeclaredScope(gateway, owner)) {
+                        retainPending(PendingDelivery(snapshot, messageId, targets.toSet(), selection, owner))
                         _deliveryIssue.value = "failed"
                         return@withLock
                     }
                     val failed = dispatchGroupConversation(
-                        gateway, snapshot, messageId, GroupMentions(targets.toSet()), confirmedBoundary()
+                        gateway, snapshot, messageId, GroupMentions(targets.toSet()), confirmedBoundary(owner)
                     )
                     if (failed.isEmpty()) {
-                        confirmBoundary(messageId)
+                        confirmBoundary(owner, messageId)
                         releasePending(messageId)
                         if (_mentions.value == selection) clearMentions()
                     } else {
-                        retainPending(PendingDelivery(snapshot, messageId, failed.toSet(), selection))
+                        retainPending(PendingDelivery(snapshot, messageId, failed.toSet(), selection, owner))
                         _deliveryIssue.value = "failed"
                     }
                 } catch (cancelled: CancellationException) {
@@ -481,7 +492,8 @@ class GroupChatViewModel(
                                 snapshot,
                                 savedMessageId ?: 0L,
                                 frozenTargets,
-                                selection
+                                selection,
+                                owner
                             )
                         )
                     }
@@ -550,7 +562,7 @@ class GroupChatViewModel(
         submitMessage("[图片]", _mentions.value, com.xingshi.ai.database.model.FileFormat.IMAGE, imagePath)
     }
 
-    /** cacheDir 原件可被系统清理，落库前转存到 filesDir 保证长期可定位。 */
+     
     private fun persistAttachment(path: String, kind: String): String {
         val source = java.io.File(path)
         if (!source.isFile) return path

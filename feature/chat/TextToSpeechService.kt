@@ -18,10 +18,7 @@ import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.ensureActive
 
-/**
- * 宿主语音合成入口：正式正文 → 音频文件。
- * 只读独立 TTS 配置，不回填主/视觉模型，不润色正文、不增加对话轮次。
- */
+ 
 object TextToSpeechService {
 
     sealed interface Outcome {
@@ -48,8 +45,8 @@ object TextToSpeechService {
             ?: return Outcome.NotConfigured
         val request = requestFrom(config, plugin, text, outputDir)
             ?: return Outcome.NotConfigured
-        // 先完成资格登记并取消子任务启动：撤销先到则外部请求不会启动；
-        // 门闩必须挂到调用方 Job 下，调用方取消时才能真正结束外部调用。
+        
+        
         val gate = Job(currentCoroutineContext()[Job])
         if (!manager.trackOptionalExecution(pluginId, version, gate)) return Outcome.NotInstalled
         val result = coroutineScope {
@@ -58,12 +55,12 @@ object TextToSpeechService {
             try {
                 call.await()
             } catch (e: CancellationException) {
-                // 调用方取消必须继续向上传播；只有本服务登记的资格被撤销才降级为不可用。
+                
                 currentCoroutineContext().ensureActive()
                 null
             } finally {
                 manager.untrackOptionalExecution(pluginId, gate)
-                // 登记成功后的正常/失败返回也必须结束 gate；只解除登记会让外层 await 永久等待。
+                
                 gate.complete()
             }
         } ?: return Outcome.NotInstalled
@@ -74,7 +71,7 @@ object TextToSpeechService {
         }
     }
 
-    /** 供应商 → 正式预设：固定协议、域名与模型；不再取「第一个可用预设」兜底。 */
+     
     internal fun presetIdOf(config: ApiConfig): String? = when (config.provider) {
         ApiProvider.XIAOMI -> "xiaomi"
         ApiProvider.MINIMAX -> "minimax"

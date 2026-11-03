@@ -116,7 +116,7 @@ fun SettingsScreen(
 ) {
     val configs by viewModel.configs.collectAsState(initial = emptyList())
     val connectionStatus by viewModel.connectionStatus.collectAsState()
-    // 主模型的启停与账号默认以云端确认结果为准，本地行只提供展示与草稿。
+    
     val mainModelCloud by viewModel.mainModelCloud.collectAsState()
     val mainModelNotice by viewModel.mainModelNotice.collectAsState()
     val sttAvailable by viewModel.sttAvailable.collectAsState()
@@ -131,7 +131,7 @@ fun SettingsScreen(
     var newConfig by remember { mutableStateOf<ApiConfig?>(null) }
     var showProviderPicker by remember { mutableStateOf(false) }
     var showTtsSettings by remember { mutableStateOf(false) }
-    // 保存结果在两条绘制路径外层统一收集，作者整页覆盖时也能展示真实错误/成功。
+    
     var uiMessage by remember { mutableStateOf<String?>(null) }
     val mainIssueTexts by rememberUpdatedState(MainChatConfigurationIssue.entries.associateWith {
         themeText("ui_main_configuration_${it.name.lowercase()}")
@@ -176,7 +176,7 @@ fun SettingsScreen(
                             it.kind != "VISUAL" && it.kind != "STT" && it.kind != "TTS"
                         }.toString(),
                         "active_config_id" to mainModelCloud.entries.firstOrNull { it.value.isDefault }?.key?.toString().orEmpty(),
-                        // 作者整页主题也读云端确认结果：DRAFT/PENDING/ACTIVE/DISABLED/UNAVAILABLE。
+                        
                         "main_model_notice" to (mainModelNotice ?: ""),
                         "vision_configured" to (visionConfig != null).toString(),
                         "vision_config_id" to visionConfig?.id?.toString().orEmpty(),
@@ -267,7 +267,7 @@ fun SettingsScreen(
             }
         )
 
-        // 新增/编辑主模型与视觉配置仍使用官方编辑弹窗，保存走原 ViewModel，不复制校验与存储逻辑
+        
         newConfig?.let { draft ->
             ApiConfigEditDialog(
                 config = draft,
@@ -374,7 +374,7 @@ private fun SettingsScreenContent(
     ttsAvailable: Boolean = false
 ) {
     val configs by viewModel.configs.collectAsState(initial = emptyList())
-    // connectionStatus 现在是 StateFlow，需 collectAsState
+    
     val connectionStatus by viewModel.connectionStatus.collectAsState()
     val mainModelCloud by viewModel.mainModelCloud.collectAsState()
     val mainModelNotice by viewModel.mainModelNotice.collectAsState()
@@ -410,7 +410,7 @@ private fun SettingsScreenContent(
 
     LaunchedEffect(Unit) {
         viewModel.refreshConnectionStatus()
-        // 列表与启停/默认状态以云端确认结果为准，进入页面重新对齐一次。
+        
         viewModel.refreshMainConfigurations()
         delay(100)
         isVisible = true
@@ -427,7 +427,7 @@ private fun SettingsScreenContent(
                 .padding(top = paddingValues.calculateTopPadding())
                 .verticalScroll(rememberScrollState())
         ) {
-            // ====== Petal Soft Top App Bar ======
+            
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -494,7 +494,7 @@ private fun SettingsScreenContent(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // ====== API Cards Section ======
+            
             ApiCardsSection(
                 isVisible = isVisible,
                 configs = configs,
@@ -506,7 +506,7 @@ private fun SettingsScreenContent(
                 textSecondaryColor = textSecondaryColor,
                 showProviderPicker = showProviderPicker,
                 onShowProviderPickerChange = { showProviderPicker = it },
-                // 传入 StateFlow 解构后的 Map 值
+                
                 connectionStatus = connectionStatus,
                 mainModelCloud = mainModelCloud,
                 mainModelNotice = mainModelNotice,
@@ -519,7 +519,7 @@ private fun SettingsScreenContent(
         }
     }
 
-    // New API Config Dialog
+    
     newConfigDialog?.let { newConfig ->
         ApiConfigEditDialog(
             config = newConfig,
@@ -534,7 +534,7 @@ private fun SettingsScreenContent(
         )
     }
 
-    // Provider Picker Dialog
+    
     if (showProviderPicker) {
         PetalApiProviderPickerDialog(
             onDismiss = { showProviderPicker = false },
@@ -553,7 +553,7 @@ private fun SettingsScreenContent(
     }
 }
 
-// ==================== Extracted Sections ====================
+
 
 @Composable
 private fun ApiCardsSection(
@@ -567,7 +567,7 @@ private fun ApiCardsSection(
     textSecondaryColor: Color,
     showProviderPicker: Boolean,
     onShowProviderPickerChange: (Boolean) -> Unit,
-    // 传入 StateFlow 解构后的 Map 值
+    
     connectionStatus: Map<String, SettingsViewModel.ConnectionResult>,
     mainModelCloud: Map<Long, SettingsViewModel.MainModelCloudState>,
     mainModelNotice: String?,
@@ -615,9 +615,9 @@ private fun ApiCardsSection(
                 val result = connectionStatus[viewModel.connectionKey(config)]
                     ?: SettingsViewModel.ConnectionResult(SettingsViewModel.ConnectionStatus.UNKNOWN)
                 val isExpanded = expandedProvider == config.provider
-                // 云端没返回的本地行视为未发布草稿；其余状态全部来自云端确认结果。
+                
                 val cloudState = mainModelCloud[config.id]
-                // 停用的配置也可能丢了云端凭据：两者都不能直接点启用，只能重填 Key 后保存。
+                
                 val credentialUnavailable = cloudState != null && !cloudState.keyConfigured
                 val isUnavailable = cloudState?.state == SettingsViewModel.MainModelState.UNAVAILABLE || credentialUnavailable
                 val statusNote = when {
@@ -760,7 +760,7 @@ private fun ApiCardsSection(
     }
 }
 
-// ==================== Reused Components (unchanged logic) ====================
+
 
 @Composable
 fun ApiConfigEditDialog(
@@ -930,7 +930,7 @@ fun ApiConfigEditDialog(
                     singleLine = true
                 )
 
-                // API 格式选择 — 仅对自定义 API 显示
+                
                 if (isCustom) {
                     var showFormatDropdown by remember { mutableStateOf(false) }
                     val formatOptions = mapOf(

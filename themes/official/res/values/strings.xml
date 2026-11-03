@@ -39,6 +39,8 @@
     <string name="chat_send">发送</string>
     <string name="close">关闭</string>
     <string name="companion_delete">删除</string>
+    <string name="ui_companion_delete_pending">助手正在删除，确认完成后再移除本机资料</string>
+    <string name="ui_companion_delete_failed">删除尚未完成，请重连后确认</string>
     <string name="companion_group_chat">群聊</string>
     <string name="companion_no_companions">还没有智能助理</string>
     <string name="confirm_delete">确认删除</string>

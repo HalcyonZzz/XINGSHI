@@ -98,7 +98,7 @@ fun HomeScreen(
             .windowInsetsPadding(WindowInsets.statusBars)
     ) {
         Column(modifier = Modifier.fillMaxSize()) {
-            // 顶部标题 + 统计信息 + 操作按钮
+            
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -163,14 +163,14 @@ fun HomeScreen(
 
                 Spacer(modifier = Modifier.height(12.dp))
 
-                // 胶囊标签切换
+                
                 HomeTabBar(
                     selectedTab = selectedTab,
                     onTabSelected = { selectedTab = it }
                 )
             }
 
-            // 内容列表
+            
             val displayGroups = when (selectedTab) {
                 HomeTab.ALL, HomeTab.GROUP -> groups
                 HomeTab.FRIEND -> emptyList()

@@ -14,7 +14,7 @@ import kotlinx.coroutines.flow.Flow
 interface ChatMessageDao {
     @Query("SELECT * FROM chat_messages WHERE companionId != :companionId")
     suspend fun getOtherCompanionMessages(companionId: Long): List<ChatMessage>
-    // Cursor pagination: 稳定双字段顺序，同毫秒消息靠 id 决出先后，不会跨页跳过。
+    
     @Query("SELECT * FROM chat_messages WHERE companionId = :companionId AND (timestamp < :beforeTimestamp OR (timestamp = :beforeTimestamp AND id < :beforeId)) ORDER BY timestamp DESC, id DESC LIMIT :limit")
     fun getMessagesBefore(companionId: Long, beforeTimestamp: Long, beforeId: Long, limit: Int): Flow<List<ChatMessage>>
 
@@ -27,7 +27,7 @@ interface ChatMessageDao {
     @Query("SELECT * FROM chat_messages WHERE companionId = :companionId ORDER BY timestamp DESC, id DESC LIMIT :limit")
     suspend fun getRecentMessagesSync(companionId: Long, limit: Int): List<ChatMessage>
 
-    // 旧页与滑动最新页之间的空洞补齐：按 id 区间取交界消息。
+    
     @Query("SELECT * FROM chat_messages WHERE companionId = :companionId AND id > :afterId AND id < :beforeId ORDER BY timestamp ASC, id ASC")
     suspend fun getMessagesBetweenIdsSync(companionId: Long, afterId: Long, beforeId: Long): List<ChatMessage>
 

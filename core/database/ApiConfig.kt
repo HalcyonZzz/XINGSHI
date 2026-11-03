@@ -23,10 +23,10 @@ data class ApiConfig(
     val connectionTestedAt: Long = 0L,
     val latencyMs: Long = 0L,
     val skipCertVerify: Boolean = false,
-    val formatHint: String = "openai",  // "openai" | "anthropic" | "iflytek" — API format hint for CUSTOM provider
-    val kind: String = "MAIN",  // "MAIN" | "VISUAL" | "STT" | "TTS" — 主模型 / 辅助模型
-    // TTS 有明确含义的持久化字段：模式、预置音色、设计描述、厂商创建的音色标识、本地样本与绑定参数
-    val voiceMode: String = "",        // "preset" | "clone" | "design"
+    val formatHint: String = "openai",  
+    val kind: String = "MAIN",  
+    
+    val voiceMode: String = "",        
     val presetVoiceId: String = "",
     val voiceDesignPrompt: String = "",
     val voiceId: String = "",
@@ -37,7 +37,7 @@ data class ApiConfig(
 ) {
     companion object {
         val BUILTIN_KEYS = mapOf<ApiProvider, List<String>>(
-            // 开源版不包含内置密钥
+            
         )
     }
 
@@ -48,7 +48,7 @@ data class ApiConfig(
         if (extraApiKeys.isNotBlank()) {
             keys.addAll(extraApiKeys.split(",").map { it.trim() }.filter { it.isNotEmpty() })
         }
-        // 开源版不包含内置密钥
+        
         if (provider != ApiProvider.PARTNER) {
             val builtin = BUILTIN_KEYS[provider]
             if (builtin != null) {

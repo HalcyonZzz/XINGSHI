@@ -44,7 +44,7 @@ import com.xingshi.ai.theme.framework.rememberThemeState
 import com.xingshi.ai.theme.framework.themeText
 import com.xingshi.ai.uicommon.theme.ThemeMode
 
-/** 显示模式：跟随系统与深色二选一，作为当前主题的子设置项。 */
+ 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ThemeModeScreen(

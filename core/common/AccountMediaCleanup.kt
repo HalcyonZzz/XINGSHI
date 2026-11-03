@@ -2,7 +2,7 @@ package com.xingshi.ai.common
 
 import java.io.File
 
-/** Deletes only unshared files inside the active account's existing media roots. */
+ 
 object AccountMediaCleanup {
     fun remove(roots: List<File>, candidates: Collection<String>, retained: Collection<String>) {
         fun canonical(value: String): File? = runCatching {

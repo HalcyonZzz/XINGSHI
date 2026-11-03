@@ -3,7 +3,7 @@ package com.xingshi.ai.feature.wechat.data.model
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.SerialName
 
-// App-facing message models. The wire protocol is handled by wechat-ilink-sdk.
+
 
 @Serializable
 @SerialName("M1")

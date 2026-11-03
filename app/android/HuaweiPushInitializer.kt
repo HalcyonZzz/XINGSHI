@@ -10,18 +10,14 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 
-/**
- * 华为 HMS PUSH 初始化器。
- *
- * SDK 版本：6.12.0.300（Maven 依赖）
- */
+ 
 object HuaweiPushInitializer {
 
     private const val TAG = "HuaweiPush"
 
     fun register(application: Application) {
         try {
-            // 自动初始化，在 HmsMessageService.onNewToken 中接收 token
+            
             HmsMessaging.getInstance(application).isAutoInitEnabled = true
             requestToken(application)
         } catch (e: Exception) {

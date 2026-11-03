@@ -66,7 +66,7 @@ import com.xingshi.ai.theme.framework.ThemeUninstallOutcome
 import com.xingshi.ai.theme.framework.rememberThemeState
 import com.xingshi.ai.theme.framework.themeText
 
-/** 主题市场：复用插件市场的搜索/列表/详情/安装交互，数据来自官方合入目录。 */
+ 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ThemeMarketScreen(onNavigateBack: () -> Unit) {
@@ -279,7 +279,7 @@ private fun ThemeMarketRow(
     }
 }
 
-/** 主题管理：已安装主题、当前状态、可用更新，提供应用/更新/卸载；官方主题始终可恢复。 */
+ 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ThemeManageScreen(
@@ -423,7 +423,7 @@ fun ThemeManageScreen(
     }
 }
 
-/** 主题管理内属于当前主题的子设置项：语言与帧率只在这里进入。 */
+ 
 @Composable
 private fun ThemeSubSettingRow(
     icon: androidx.compose.ui.graphics.vector.ImageVector,

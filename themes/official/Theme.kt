@@ -36,10 +36,7 @@ import com.xingshi.ai.theme.framework.ThemeRuntime
 import com.xingshi.ai.theme.framework.ThemeState
 import com.xingshi.ai.theme.framework.toCompose
 
-/**
- * 官方主题的外观入口：颜色、字号与系统栏全部来自主题框架解析结果，
- * 官方主题只提供默认值与页面绘制，不写死宿主覆盖。
- */
+ 
 @Composable
 fun XingShiTheme(content: @Composable () -> Unit) {
     val context = LocalContext.current
@@ -127,13 +124,13 @@ fun XingShiTheme(content: @Composable () -> Unit) {
         typography = AppTypography
     ) {
         Box(modifier = Modifier.fillMaxSize()) {
-            // 恢复模式：不经过作者 Wrap，直接组合宿主内容，确保管理页可达。
+            
             if (codeUi != null && !recovery) {
                 codeUi.Wrap { hostContent() }
             } else {
                 hostContent()
             }
-            // 宿主保留入口：作者页面/Wrap 未提供主题管理入口时，仍可进入主题管理并恢复官方。
+            
             if (codeUi != null && !recovery) {
                 Surface(
                     modifier = Modifier

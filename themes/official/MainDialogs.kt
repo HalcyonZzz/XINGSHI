@@ -16,15 +16,7 @@ import com.xingshi.ai.themes.official.R
 import com.xingshi.ai.common.BatteryOptimizationHelper
 import com.xingshi.ai.theme.framework.themeText
 
-/**
- * 启动引导弹窗管理器。
- *
- * 反馈回路:
- *   传感器: SharedPreferences (dialog_shown flags)
- *   比较器: shown = true? → skip
- *   执行器: show dialog → mark shown
- *   背压: 弹窗队列容量 = 3, 超限合并
- */
+ 
 @Composable
 fun MainScreenDialogs(
     onAutoStartSettings: () -> Unit = {},

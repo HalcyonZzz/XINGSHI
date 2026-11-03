@@ -6,7 +6,7 @@ import com.xingshi.ai.plugins.api.ChannelReplyRoute
 import com.xingshi.ai.plugins.api.ChannelSendResult
 import kotlinx.serialization.json.*
 
-/** Restores only the original QQ endpoint and message anchor; no token or original body is captured. */
+ 
 class QQReplySender(private val send: suspend (QQInboundEvent, String) -> ChannelSendResult) {
     companion object {
     fun capture(accountId: String, event: QQInboundEvent): ChannelReplyRoute {

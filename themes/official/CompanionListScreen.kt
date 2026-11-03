@@ -63,6 +63,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import com.xingshi.ai.themes.official.R
 import androidx.compose.ui.text.font.FontWeight
@@ -74,6 +75,7 @@ import coil.compose.AsyncImage
 import com.xingshi.ai.database.model.CompanionEntity
 import com.xingshi.ai.database.viewmodel.CompanionListViewModel
 import kotlinx.coroutines.delay
+import android.widget.Toast
 import com.xingshi.ai.theme.framework.themeText
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -85,11 +87,23 @@ fun CompanionListScreen(
     viewModel: CompanionListViewModel = viewModel()
 ) {
     val companions by viewModel.companions.collectAsState(initial = emptyList())
+    val deleteMessage by viewModel.deleteMessage.collectAsState()
+    val deleteMessageText = deleteMessage?.let { notice ->
+        themeText(notice.key) + if (notice.detail.isBlank()) "" else "：${notice.detail}"
+    }
+    val context = LocalContext.current
     var isVisible by remember { mutableStateOf(false) }
 
     LaunchedEffect(Unit) {
         delay(100)
         isVisible = true
+    }
+
+    LaunchedEffect(deleteMessageText) {
+        deleteMessageText?.let { message ->
+            Toast.makeText(context, message, Toast.LENGTH_LONG).show()
+            viewModel.consumeDeleteMessage()
+        }
     }
 
     Scaffold(
@@ -211,7 +225,7 @@ fun CompanionCard(
                 onClick = onClick
             )
     ) {
-        // Card background
+        
         Box(
             modifier = Modifier
                 .fillMaxWidth()
@@ -230,7 +244,7 @@ fun CompanionCard(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                // Animated Avatar
+                
                 Box(
                     modifier = Modifier
                         .size(72.dp)
@@ -362,7 +376,7 @@ fun EmptyStateWithAnimation() {
                     this.alpha = alphaAnim
                 }
         ) {
-            // Decorative circle
+            
             Box(
                 modifier = Modifier
                     .size(120.dp)

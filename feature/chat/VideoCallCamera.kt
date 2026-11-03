@@ -18,10 +18,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withContext
 
-/**
- * 通话内摄像头：Camera2 预览 + 只在话段结束时取一帧 JPEG。
- * 不录制整段视频、不截屏；预览与会话资源在挂断/离开时释放。
- */
+ 
 class VideoCallCamera(private val context: Context) {
 
     private val manager = context.getSystemService(Context.CAMERA_SERVICE) as CameraManager
@@ -59,7 +56,7 @@ class VideoCallCamera(private val context: Context) {
             surfaceView.holder.addCallback(object : android.view.SurfaceHolder.Callback {
                 override fun surfaceCreated(holder: android.view.SurfaceHolder) {
                     previewSurface = holder.surface
-                    // camera-first 时 onOpened 已先到，Surface 到达后必须补建会话
+                    
                     tryCreateSession()
                 }
 
@@ -145,7 +142,7 @@ class VideoCallCamera(private val context: Context) {
         }
     }
 
-    /** 立即抓取当前相机画面；失败返回 null，不拿旧帧代替。 */
+     
     suspend fun captureFrame(): File? = withContext(Dispatchers.IO) {
         suspendCancellableCoroutine { continuation ->
             val device = device
@@ -195,7 +192,7 @@ class VideoCallCamera(private val context: Context) {
         }
     }
 
-    /** 与预览一致的前置镜像/方向处理：JPEG 方向由传感器与显示旋转推导。 */
+     
     private fun jpegOrientation(): Int {
         val rotation = context.getSystemService(android.view.WindowManager::class.java)
             ?.defaultDisplay?.rotation ?: Surface.ROTATION_0

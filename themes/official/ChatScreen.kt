@@ -180,7 +180,7 @@ fun ChatScreen(
     val stickerManager = remember { StickerManager.getInstance(context) }
     val voiceRecorder = remember { VoiceRecorder.getInstance(context) }
     var recording by remember { mutableStateOf(false) }
-    // 业务副作用由外层统一收集：官方与作者两条绘制路径都拿同一份真实结果。
+    
     var uiMessage by remember { mutableStateOf<String?>(null) }
     var pendingVoiceStart by remember { mutableStateOf(false) }
     var showVoiceCall by remember { mutableStateOf(false) }
@@ -195,7 +195,7 @@ fun ChatScreen(
     DisposableEffect(lifecycleOwner) {
         val observer = LifecycleEventObserver { _, event ->
             if (event == Lifecycle.Event.ON_STOP) {
-                // 前台通话：进入后台/离开页面即结束并释放，不新增后台录音/摄像承载。
+                
                 com.xingshi.ai.feature.chat.VoiceCallCoordinator.hangup()
                 videoCamera.stop()
                 showVoiceCall = false
@@ -217,7 +217,7 @@ fun ChatScreen(
             kotlinx.coroutines.delay(250)
         }
     }
-    // 权限授权后必须重新走统一准入：首次授权时插件/独立配置可能仍缺项。
+    
     val callPrepareMessage: (com.xingshi.ai.feature.chat.VoiceCallCoordinator.Prepare) -> String? = { prepare ->
         when (prepare) {
             com.xingshi.ai.feature.chat.VoiceCallCoordinator.Prepare.READY -> null
@@ -237,7 +237,7 @@ fun ChatScreen(
         if (granted[android.Manifest.permission.CAMERA] == true &&
             granted[android.Manifest.permission.RECORD_AUDIO] == true
         ) {
-            // 资源就绪后再开始计时/通话：相机 ready 回调里重新统一准入并启动控制器。
+            
             showVideoCall = true
         } else {
             uiMessage = ThemeRuntime.resolveText("ui_call_permission_camera_mic")
@@ -325,6 +325,14 @@ fun ChatScreen(
         }
     }
 
+    
+    
+    LaunchedEffect(backendStatus) {
+        if (backendStatus.startsWith("ui_tts_error_") || backendStatus.startsWith("ui_chat_tts_retry_")) {
+            uiMessage = ThemeRuntime.resolveText(backendStatus)
+        }
+    }
+
     val voiceRetryAvailable by viewModel.voiceRetryAvailable.collectAsState()
     val audioPermissionLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.RequestPermission()
@@ -337,7 +345,7 @@ fun ChatScreen(
         }
     }
 
-    // 媒体：相册图片/视频与表情包导入仍走原业务发送方法，不复制模型调用
+    
     val imagePicker = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
         uri?.let {
             scope.launch {
@@ -526,7 +534,7 @@ fun ChatScreen(
             val videoBody: @Composable () -> Unit = {
                 Box(modifier = Modifier.fillMaxSize().background(androidx.compose.ui.graphics.Color.Black)) {
                     videoPreview()
-                    // 右上角：本实例头像（不是生成视频）
+                    
                     Box(
                         modifier = Modifier
                             .align(androidx.compose.ui.Alignment.TopEnd)
@@ -578,7 +586,7 @@ fun ChatScreen(
                             .align(androidx.compose.ui.Alignment.BottomCenter)
                             .padding(bottom = 128.dp)
                     )
-                    // 正下方：与语音通话一致的挂断按钮
+                    
                     androidx.compose.material3.FilledIconButton(
                         onClick = endVideoCall,
                         modifier = Modifier
@@ -738,7 +746,7 @@ private fun ChatScreenContent(
     onNavigateBack: () -> Unit,
     onNavigateToDetail: (Long) -> Unit = {},
     onOpenPluginPage: (String) -> Unit = {},
-    /** 外层统一收集的业务结果；fallback 只负责展示与消费。 */
+     
     uiMessage: String? = null,
     onUiMessageShown: () -> Unit = {},
     onVoiceCall: () -> Unit = {},
@@ -756,7 +764,7 @@ private fun ChatScreenContent(
     var showStickerPanel by remember { mutableStateOf(false) }
     val stickerManager = remember { StickerManager.getInstance(context) }
 
-    // Image picker for album
+    
     val imagePickerLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.GetContent()
     ) { uri: Uri? ->
@@ -777,7 +785,7 @@ private fun ChatScreenContent(
         }
     }
 
-    // Camera launcher for taking photos
+    
     var cameraPhotoUri by remember { mutableStateOf<android.net.Uri?>(null) }
     val cameraLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.TakePicture()
@@ -819,7 +827,7 @@ private fun ChatScreenContent(
         }
     }
 
-    // Audio recording permission launcher with pending action
+    
     var pendingAudioAction by remember { mutableStateOf<(() -> Unit)?>(null) }
     val voiceRetryAvailable by viewModel.voiceRetryAvailable.collectAsState()
     val audioPermissionLauncher = rememberLauncherForActivityResult(
@@ -833,7 +841,7 @@ private fun ChatScreenContent(
         pendingAudioAction = null
     }
 
-    // Video picker for album
+    
     val videoPickerLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.GetContent()
     ) { uri: Uri? ->
@@ -892,7 +900,7 @@ private fun ChatScreenContent(
     val perfTier = remember { HardwareInfo.tier }
     val adaptiveSizing = rememberAdaptiveSizing()
 
-    // Per-companion chat settings
+    
     val settingsStore = remember { ChatDetailSettingsStore(context) }
     val detailSettings by settingsStore.settingsFlow(companionId).collectAsState(initial = com.xingshi.ai.feature.chat.data.CompanionChatDetailSettings())
 
@@ -901,7 +909,7 @@ private fun ChatScreenContent(
         viewModel.refreshCompanionData()
     }
 
-    // 展示外层统一收集的业务结果，展示后回执消费；识别失败时原件可直接重试。
+    
     LaunchedEffect(uiMessage, voiceRetryAvailable) {
         if (!uiMessage.isNullOrBlank()) {
             val result = snackbarHostState.showSnackbar(
@@ -918,16 +926,16 @@ private fun ChatScreenContent(
 
     var hasScrolledToBottom by remember { mutableStateOf(false) }
 
-    // LazyColumn 实际 item 总数（与 LazyColumn 内部 item 声明保持一致）
+    
     val itemCount = messages.size +
         (if (isLoadingMore) 1 else 0) +
         (if (isTyping) 1 else 0) +
         (if (isReasoning && reasoningText.isNotBlank()) 1 else 0)
 
-    // 列表状态始终存在；空消息列表时不显示转圈，而是正常展示输入栏
+    
     val listState = remember { LazyListState() }
 
-    // 首次有消息时同步滚动到底部，避免首帧闪现顶部
+    
     LaunchedEffect(messages.isNotEmpty()) {
         if (messages.isNotEmpty() && !hasScrolledToBottom) {
             hasScrolledToBottom = true
@@ -935,7 +943,7 @@ private fun ChatScreenContent(
         }
     }
 
-    // 检查当前是否在底部附近
+    
     val isAtBottom = remember {
         derivedStateOf {
             val layoutInfo = listState.layoutInfo
@@ -946,7 +954,7 @@ private fun ChatScreenContent(
         }
     }
 
-    // 通过 snapshotFlow 追踪用户是否在底部附近，避免布局更新时序导致的误判
+    
     var wasAtBottom by remember { mutableStateOf(true) }
     LaunchedEffect(listState) {
         snapshotFlow { isAtBottom.value }.collect { nearBottom ->
@@ -954,7 +962,7 @@ private fun ChatScreenContent(
         }
     }
 
-    // 新消息时自动滚动到底部：用户消息始终滚动，AI 消息仅在用户位于底部时滚动
+    
     val lastMessageId = messages.lastOrNull()?.id
     LaunchedEffect(lastMessageId) {
         if (messages.isEmpty()) return@LaunchedEffect
@@ -969,31 +977,31 @@ private fun ChatScreenContent(
         }
     }
 
-    // AI 流式回复时持续滚动到底部（typingText 变化但消息数不变）
+    
     LaunchedEffect(typingText) {
         if (typingText.isNotBlank() && wasAtBottom) {
             listState.scrollToItem((itemCount - 1).coerceAtLeast(0))
         }
     }
 
-    // AI 深度推理时持续滚动到底部（reasoningText 变化但消息数不变）
+    
     LaunchedEffect(reasoningText) {
         if (reasoningText.isNotBlank() && wasAtBottom) {
             listState.scrollToItem((itemCount - 1).coerceAtLeast(0))
         }
     }
 
-    // 键盘弹出时滚动到底部
+    
     LaunchedEffect(WindowInsets.ime.getBottom(LocalDensity.current)) {
         if (itemCount > 0) listState.scrollToItem((itemCount - 1).coerceAtLeast(0))
     }
 
-    // ── 上划加载历史消息 ──
+    
     var prevMessageCount by remember { mutableStateOf(0) }
     var isLoadingMoreTriggered by remember { mutableStateOf(false) }
 
     LaunchedEffect(listState.firstVisibleItemIndex, hasMoreMessages) {
-        // 首次进入时列表可能尚未滚动到底，避免此时误触发加载历史
+        
         if (!hasScrolledToBottom) return@LaunchedEffect
         if (listState.firstVisibleItemIndex <= 2 && hasMoreMessages && !isLoadingMore && !isLoadingMoreTriggered) {
             isLoadingMoreTriggered = true
@@ -1002,7 +1010,7 @@ private fun ChatScreenContent(
         }
     }
 
-    // 加载完成后恢复滚动位置
+    
     LaunchedEffect(isLoadingMore, prevMessageCount) {
         if (!isLoadingMore && prevMessageCount > 0 && messages.size > prevMessageCount) {
             val addedCount = messages.size - prevMessageCount
@@ -1012,7 +1020,7 @@ private fun ChatScreenContent(
         }
     }
 
-    // Background: per-companion > global > default
+    
     val defaultBackground = MaterialTheme.colorScheme.background
     var targetBgColor by remember { mutableStateOf(defaultBackground) }
     var chatBgGradient by remember { mutableStateOf<Brush?>(null) }
@@ -1060,14 +1068,14 @@ private fun ChatScreenContent(
         HardwareInfo.Tier.LOW -> 0.2f
     }
 
-    // Voice recording
+    
     var showVoiceRecorder by remember { mutableStateOf(false) }
     var isRecording by remember { mutableStateOf(false) }
     var recordingDuration by remember { mutableStateOf(0) }
     var isCanceling by remember { mutableStateOf(false) }
     val voiceRecorder = remember { VoiceRecorder.getInstance(context) }
 
-    // Voice recording timer & actual recording
+    
     LaunchedEffect(isRecording) {
         if (isRecording) {
             recordingDuration = 0
@@ -1080,7 +1088,7 @@ private fun ChatScreenContent(
     }
 
     Box(modifier = Modifier.fillMaxSize()) {
-        // Snackbar host
+        
         SnackbarHost(
             hostState = snackbarHostState,
             modifier = Modifier
@@ -1089,7 +1097,7 @@ private fun ChatScreenContent(
                 .zIndex(1f)
         )
 
-        // Background layer
+        
         if (isCustomBg && customBgPainter != null) {
             Image(
                 painter = customBgPainter,
@@ -1099,7 +1107,7 @@ private fun ChatScreenContent(
             )
         }
 
-        // Main content - Column with messages and input only
+        
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -1110,7 +1118,7 @@ private fun ChatScreenContent(
                     else Modifier.background(backgroundColor)
                 )
         ) {
-            // Messages list - takes full space, top bar is overlay
+            
             LazyColumn(
                 state = listState,
                 modifier = Modifier
@@ -1125,7 +1133,7 @@ private fun ChatScreenContent(
                 ),
                 verticalArrangement = Arrangement.spacedBy(6.dp)
             ) {
-                // 顶部加载指示器
+                
                 if (isLoadingMore) {
                     item(key = "load_more_indicator") {
                         Box(
@@ -1189,13 +1197,13 @@ private fun ChatScreenContent(
                 }
             }
 
-            // Bottom panels and input
+            
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
                     .windowInsetsPadding(WindowInsets.navigationBars)
             ) {
-                // Sticker panel
+                
                 StickerPanel(
                     isVisible = showStickerPanel,
                     onStickerClick = { sticker ->
@@ -1218,7 +1226,7 @@ private fun ChatScreenContent(
                     }
                 )
 
-                // Extension panel: 相册 / 拍摄 / 视频 / 通话 / 表情
+                
                 if (showExtensionPanel) {
                     Row(
                         modifier = Modifier
@@ -1290,7 +1298,7 @@ private fun ChatScreenContent(
                 PluginFailureToast(companionId = companionId)
                 PluginPendingBanner(companionId = companionId)
 
-                // Input bar
+                
                 val isBlocked = detailSettings.blocked
                 if (isBlocked) {
                     Box(
@@ -1365,7 +1373,7 @@ private fun ChatScreenContent(
             }
         }
 
-        // Voice recording overlay
+        
         if (showVoiceRecorder) {
             Box(
                 modifier = Modifier
@@ -1446,7 +1454,7 @@ private fun ChatScreenContent(
             }
         }
 
-        // Floating top bar - overlay on top of messages
+        
         Box(
             modifier = Modifier
                 .fillMaxWidth()
@@ -1499,7 +1507,7 @@ private fun ChatScreenContent(
                             color = MaterialTheme.colorScheme.onSurface
                         )
                         Spacer(modifier = Modifier.width(6.dp))
-                        // AI生成标识
+                        
                         Box(
                             modifier = Modifier
                                 .clip(RoundedCornerShape(4.dp))

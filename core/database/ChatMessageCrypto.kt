@@ -12,18 +12,7 @@ import javax.crypto.SecretKey
 import javax.crypto.spec.GCMParameterSpec
 import javax.crypto.spec.SecretKeySpec
 
-/**
- * Application-layer encryption for chat message payload fields.
- *
- * Query-critical metadata stays queryable in SQLite:
- * - timestamp for millisecond cursor reads
- * - searchContent for fuzzy search
- * - fileFormat for file category filtering
- *
- * Sensitive payload fields are encrypted at rest:
- * - content
- * - linkString (supports one or more resources encoded as a single link string)
- */
+ 
 object ChatMessageCrypto {
     private const val KEYSTORE_ALIAS = "xingshi_chat_message_key"
     private const val ANDROID_KEYSTORE = "AndroidKeyStore"
@@ -32,12 +21,12 @@ object ChatMessageCrypto {
     private const val GCM_IV_LENGTH = 12
     private const val PREFIX = "enc:v1:"
 
-    /** Primary key from AndroidKeyStore (TEE-backed, AES-256-GCM) */
+     
     private val keyStoreKey: SecretKey? by lazy {
         runCatching { getOrCreateAndroidKeyStoreKey() }.getOrNull()
     }
 
-    /** Current encryption key. Refuse storage when AndroidKeyStore is unavailable. */
+     
     private val encryptionKey: SecretKey
         get() = keyStoreKey ?: error("AndroidKeyStore chat message key unavailable")
 
@@ -47,18 +36,18 @@ object ChatMessageCrypto {
         SecretKeySpec(digest, "AES")
     }
 
-    /** KeyStore first, legacy static key only for pre-existing encrypted rows. */
+     
     private val decryptionKeys: List<SecretKey>
         get() = listOfNotNull(keyStoreKey) + legacyFallbackKey
 
-    // --- Public API (mirrors C0 interface for drop-in replacement) ---
+    
 
     fun encryptForStorage(message: ChatMessage): ChatMessage {
         return try {
             message.copy(
                 content = encrypt(message.content),
                 searchContent = message.searchContent.ifBlank { message.content },
-                // 保持既有随机 IV 密钥合同；CALL 去重改由读取 CALL 行解密比对，不再自定 IV。
+                
                 linkString = encrypt(message.linkString)
             )
         } catch (e: Exception) {
@@ -90,7 +79,7 @@ object ChatMessageCrypto {
     }
 
     fun decryptFromStorage(message: GroupMessage): GroupMessage {
-        // 群聊历史整批读取：单行坏密文不能把整页 Flow 打挂，与单聊保持同一占位合同。
+        
         return try {
             message.copy(
                 content = decrypt(message.content),
@@ -106,7 +95,7 @@ object ChatMessageCrypto {
 
     fun encrypt(plaintext: String): String {
         if (plaintext.isEmpty()) return plaintext
-        // 只有确实能用存储密钥解开的输入才是幂等写入；用户原话恰好以 enc:v1: 开头时按明文加密。
+        
         if (isStoredCiphertext(plaintext)) return plaintext
         val cipher = Cipher.getInstance(TRANSFORMATION)
         cipher.init(Cipher.ENCRYPT_MODE, encryptionKey)
@@ -124,35 +113,32 @@ object ChatMessageCrypto {
         val combined = runCatching {
             Base64.getDecoder().decode(value.removePrefix(PREFIX))
         }.getOrNull() ?: return value
-        // 前缀只是形状标记：不满足 IV+密文最短长度的内容仍是用户原话，按明文返回。
+        
         if (combined.size <= GCM_IV_LENGTH) return value
         val iv = combined.copyOfRange(0, GCM_IV_LENGTH)
         val ciphertext = combined.copyOfRange(GCM_IV_LENGTH, combined.size)
 
-        // Try each key: KeyStore first, then legacy fallback (backward compat)
+        
         for (key in decryptionKeys) {
             try {
                 val cipher = Cipher.getInstance(TRANSFORMATION)
                 cipher.init(Cipher.DECRYPT_MODE, key, GCMParameterSpec(GCM_TAG_LENGTH, iv))
                 return String(cipher.doFinal(ciphertext), Charsets.UTF_8)
             } catch (_: Exception) {
-                // Try next key
+                
             }
         }
-        // If all keys fail, throw so callers detect failure instead of passing garbage
+        
         throw javax.crypto.AEADBadTagException("ChatMessage decrypt failed: no key matched")
     }
 
-    /**
-     * 是否为可解开的存储密文。用于 encrypt 的幂等判定：
-     * 只有旧的已加密行会在重复写入时原样保留，用户明文即使带前缀也会被加密。
-     */
+     
     private fun isStoredCiphertext(value: String): Boolean {
         if (!value.startsWith(PREFIX)) return false
         return runCatching { decrypt(value) }.isSuccess
     }
 
-    // --- KeyStore helpers ---
+    
 
     private fun getOrCreateAndroidKeyStoreKey(): SecretKey {
         val keyStore = KeyStore.getInstance(ANDROID_KEYSTORE).apply { load(null) }

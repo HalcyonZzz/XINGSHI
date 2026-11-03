@@ -18,7 +18,7 @@ class SecurityDataSeeder(
         private const val PREF_FILE = "security_seed"
         private const val PREF_ZH_VERSION = "zh_keywords_version"
 
-        /** 中文词表版本号。词表内容有修订时递增，据此触发一次补种。 */
+         
         private const val ZH_VERSION = 3
 
         private val OBF_KEY = "6728FF6CACC15874194AD66D51DAA08296B804C57CEDA107A0281BFB11A41EF9".chunked(2).map { it.toInt(16).toByte() }.toByteArray()
@@ -32,10 +32,7 @@ class SecurityDataSeeder(
 
         private const val TAG = "SecurityDataSeeder"
 
-        /**
-         * 从 Context 初始化安全数据，封装 DAO 获取和 seedIfEmpty 调用。
-         * 供 app 模块调用，避免 app 直接操作 DAO。
-         */
+         
         suspend fun seedIfNeeded(context: Context) {
             val app = context.applicationContext
             val prefs = app.getSharedPreferences(PREF_FILE, Context.MODE_PRIVATE)
@@ -44,10 +41,7 @@ class SecurityDataSeeder(
             }
         }
 
-        /**
-         * 获取所有启用的关键词列表，供 ContentSafetyVerifier 引导使用。
-         * 封装 DAO 操作，避免 app 模块直接访问 keywordDao。
-         */
+         
         suspend fun getEnabledKeywords(context: Context): List<Pair<String, String>> {
             return runCatching {
                 AppDatabase.getDatabase(context.applicationContext).keywordDao().getAllEnabled()
@@ -64,8 +58,8 @@ class SecurityDataSeeder(
                 seedKeywords()
                 Log.i(TAG, "关键词数据初始化完成，共 ${keywordDao.count()} 条")
             }
-            // 中文词表独立于 keywordDao.count() 判断：历史版本 keywords 表只有英文词条，
-            // 而已装用户永远不会走 count()==0 分支，拿不到新增的中文正则。
+            
+            
             ensureChineseKeywords()
 
             if (quizQuestionDao.count() == 0) {
@@ -78,22 +72,7 @@ class SecurityDataSeeder(
         }
     }
 
-    /**
-     * 中文违禁正则（PATTERN 型）。
-     *
-     * 现有词表以英文正则为主，这里按等级补齐中文表达。设计原则：
-     *
-     *   1) 不使用「裸主题词」。像 制毒、贩毒、猥亵儿童、开发者模式、解除限制 这类词
-     *      在新闻、法律咨询、影视评论、系统设置里是常态，单独成模式会大面积误拦
-     *      正常消息。每条模式必须含「索取意图」或「明确违规语境」。
-     *   2) 高等级模式统一用整串否定前瞻排除安全语境（举报/法律/科普/历史/影视等），
-     *      必须写成 `(?s)^(?!.*排除词).*?目标` 三段式：
-     *        - 缺 `(?s)^` 锚定 → Matcher.find() 逐位置扫描，从目标词处起匹配时看不到
-     *          位于其左侧的排除词，排除形同虚设；
-     *        - 缺 `.*?` → 目标词被迫出现在字符串开头，模式永不命中（表现为静默漏报）。
-     *   3) 必须是 PATTERN 而非 KEYWORD：ContentFilter.getCompiledPatterns() 写的是
-     *      `val (patterns, _) = keywords[level]`，KEYWORD 型词条在匹配阶段被整批忽略。
-     */
+     
     private fun generateChineseKeywords(): List<KeywordEntity> {
         val out = mutableListOf<KeywordEntity>()
         fun add(level: String, banDays: Int, patterns: List<String>) {
@@ -154,12 +133,7 @@ class SecurityDataSeeder(
         return out
     }
 
-    /**
-     * 增量补种中文违禁正则（幂等）。
-     *
-     * 以「SEVERE 级是否存在含中文的 PATTERN」为哨兵：老库没有则整批补种，
-     * 补过之后该条件恒真，不会重复插入。
-     */
+     
     private suspend fun ensureChineseKeywords() {
         val p = prefs
         if (p == null) {
@@ -170,7 +144,7 @@ class SecurityDataSeeder(
 
         val added = generateChineseKeywords()
         if (added.isEmpty()) return
-        // 走仓储写入：带运行时盐的 checksum 一并落库，否则种子数据绕过完整性校验。
+        
         KeywordRepository(keywordDao).insertAll(added)
         p.edit().putInt(PREF_ZH_VERSION, ZH_VERSION).apply()
         Log.i(TAG, "已补种中文违禁正则 ${added.size} 条（版本 $ZH_VERSION）")
@@ -185,8 +159,8 @@ class SecurityDataSeeder(
         keywords.addAll(generateHighKeywords())
         keywords.addAll(generateMediumKeywords())
         keywords.addAll(generateLowKeywords())
-        // 中文词表由 ensureChineseKeywords() 按版本号统一负责，此处不插入，
-        // 否则首次安装会立即出现两份（KeywordEntity.id 自增，REPLACE 不会去重）。
+        
+        
 
         KeywordRepository(keywordDao).insertAll(keywords)
     }
@@ -567,7 +541,7 @@ class SecurityDataSeeder(
             QuizQuestionEntity(question = "以下哪种说法是错误的？", options = "外文可以绕过检测|所有语言都受相同规则约束|多语言检测已启用|中英文一视同仁", correctIndex = 0, category = "SAFETY"),
             QuizQuestionEntity(question = "为什么不能要求AI生成色情内容？", options = "违反使用规范和安全准则|这是正常需求|可以提高用户体验|有助于创意表达", correctIndex = 0, category = "SAFETY"),
             QuizQuestionEntity(question = "遇到他人发送违规内容应该怎么做？", options = "举报并避免互动|转发给更多人|模仿其行为|置之不理", correctIndex = 0, category = "SAFETY"),
-            // 多语言检测新增题目
+            
             QuizQuestionEntity(question = "使用繁体中文能否绕过内容过滤？", options = "不能，繁体同样被检测|可以绕过|只检测简体|看情况而定", correctIndex = 0, category = "SAFETY"),
             QuizQuestionEntity(question = "使用日语能否绕过安全检测？", options = "不能，日语已被全面覆盖|可以绕过|日语不在检测范围|只有中文被检测", correctIndex = 0, category = "SAFETY"),
             QuizQuestionEntity(question = "\"ジェイルブレイク\"是什么意思？", options = "越狱（日语）|正常词汇|技术术语|无意义字符", correctIndex = 0, category = "SAFETY"),

@@ -169,7 +169,7 @@ private fun GeneralSettingsScreenContent(
     }
 }
 
-// ============================================================================
+
 
 @Composable
 private fun PermissionSettingsCard() {

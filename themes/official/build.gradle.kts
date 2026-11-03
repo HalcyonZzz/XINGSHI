@@ -73,10 +73,10 @@ dependencies {
 }
 
 
-// ============================================================
-// 作者主题打包：读取 themes/market-registry.json，通用打包主题目录、
-// 可选代码 DEX，并生成离线市场目录；新增作者主题无需改宿主构建脚本。
-// ============================================================
+
+
+
+
 
 val themeMarketAssets = layout.buildDirectory.dir("generated/themeMarketAssets")
 
@@ -87,7 +87,7 @@ val packageAuthorThemes = tasks.register("packageAuthorThemes") {
     group = "theme"
     description = "打包 themes/<id>/ 为市场主题包并生成离线市场目录"
     doLast {
-        // 清理旧版本 zip，避免 assets 里遗留过期主题包
+        
         val expected = marketEntries.mapNotNull { entry ->
             val dirName = themeString(entry, "dir") ?: return@mapNotNull null
             val manifestFile = rootProject.file("themes/$dirName/theme.json")
@@ -138,7 +138,7 @@ fun registerThemeZip(
     dexTask: org.gradle.api.tasks.TaskProvider<JavaExec>?,
     authorDexPath: String?
 ): org.gradle.api.tasks.TaskProvider<Zip> = tasks.register<Zip>("packageThemeZip$themeId") {
-    // 作者运行素材全量携带（字体、图标、预览、扩展资源等），生成物仅覆盖 dex/classes.dex
+    
     from(themeDir) {
         if (dexTask != null) exclude("dex/classes.dex")
     }
@@ -148,8 +148,8 @@ fun registerThemeZip(
     }
     if (authorDexPath != null) {
         val authorDexFile = rootProject.file(authorDexPath)
-        // 作者按指南把 DEX 放在主题目录 dex/classes.dex 时，上面的全目录收入已包含它；
-        // 目标路径只允许出现一次，否则 Gradle 会报 duplicate entry。
+        
+        
         val includedByThemeDir = authorDexFile.canonicalFile == File(themeDir, "dex/classes.dex").canonicalFile
         if (!includedByThemeDir) {
             from(authorDexFile) { into("dex"); rename { "classes.dex" } }
@@ -168,8 +168,8 @@ marketEntries.forEach { entry ->
     val themeId = themeString(manifest, "id") ?: return@forEach
     val themeVersion = themeString(manifest, "version") ?: "1.0.0"
     val code = entry["code"] as? Map<*, *>
-    // 作者代码来源：本仓模块 AAR（module+aar）、作者自带 jar（jar）、作者自带 dex（dex）。
-    // 后两者让新作者无需改 settings.gradle 或宿主脚本即可接入；ZIP 显式依赖 DEX 产物。
+    
+    
     var dexTask: org.gradle.api.tasks.TaskProvider<JavaExec>? = null
     var unpackTask: org.gradle.api.tasks.TaskProvider<Copy>? = null
     var authorDexPath: String? = null

@@ -1,32 +1,21 @@
 package com.xingshi.ai.common.text
 
-/**
- * AI 回复分段工具。
- *
- * 集中 ChatViewModel 与 GroupChatViewModel 中同名但实现不同的 splitIntoSegments 逻辑，
- * 通过 [SplitMode] 参数化两种策略。
- */
+ 
 object MessageSegmenter {
 
-    /** 分段模式 */
+     
     enum class SplitMode {
-        /** Chat 模式：按段落正则 + 句子正则简洁拆分 */
+         
         SIMPLE,
-        /** Group 模式：按标点逐句 + 长度合并的精细拆分 */
+         
         GROUP
     }
 
-    // ── SIMPLE 模式正则 ──
+    
     private val SPLIT_PARAGRAPH_REGEX = Regex("\\n{2,}")
     private val SPLIT_SENTENCE_REGEX = Regex("(?<=[。！？～…!?~])\\s*")
 
-    /**
-     * 分段入口。
-     *
-     * @param text 原始 AI 回复文本
-     * @param mode 拆分模式，默认 [SplitMode.SIMPLE]
-     * @return 拆分后的短句列表，至少包含 1 项（原文本）
-     */
+     
     fun split(text: String, mode: SplitMode = SplitMode.SIMPLE): List<String> {
         return when (mode) {
             SplitMode.SIMPLE -> splitSimple(text)
@@ -34,7 +23,7 @@ object MessageSegmenter {
         }
     }
 
-    // ── SIMPLE: 原 ChatViewModel.splitIntoSegments ──
+    
     private fun splitSimple(text: String): List<String> {
         val trimmed = text.trim()
         val paragraphs = trimmed.split(SPLIT_PARAGRAPH_REGEX).filter { it.isNotBlank() }
@@ -44,7 +33,7 @@ object MessageSegmenter {
         return listOf(trimmed)
     }
 
-    // ── GROUP: 原 GroupChatViewModel.splitIntoSegments + splitLongSegment ──
+    
     private fun splitGroup(text: String): List<String> {
         val cleaned = text.trim().replace(Regex("\\n{2,}"), "\n")
         if (cleaned.length <= 15) return listOf(cleaned)

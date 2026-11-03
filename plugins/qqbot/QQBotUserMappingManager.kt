@@ -12,14 +12,14 @@ class QQBotUserMappingManager(
         if (existingId != null && existingId > 0) {
             val companion = companionRepository.getCompanionById(existingId)
             if (companion != null) return existingId
-            // 目标角色已删除：保留失效映射作为拒绝状态，不静默改派默认角色；
-            // 只有用户显式重新映射才覆盖，连续多条消息均拒绝
+            
+            
             return null
         }
         return createDefaultMapping(qqUserId)
     }
 
-    /** 只承接用户显式配置且仍有效的默认映射；不得擅自取第一个角色。 */
+     
     private suspend fun createDefaultMapping(qqUserId: String): Long? {
         val defaultCompanionId = tokenStore.getDefaultCompanionId()
         if (defaultCompanionId == null || defaultCompanionId <= 0) return null
@@ -48,7 +48,7 @@ class QQBotUserMappingManager(
         if (existingId != null && existingId > 0) {
             val companion = companionRepository.getCompanionById(existingId)
             if (companion != null) return existingId
-            // 失效映射保留到用户显式重设：不得在读取时删除并让后续消息套默认角色
+            
         }
         return null
     }

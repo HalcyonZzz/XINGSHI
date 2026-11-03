@@ -20,10 +20,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 
-/**
- * 应用级群回复接收：不依赖群页面是否打开。
- * 按 operationId 组装完整正文（前段+尾段/空终结），保存成功后才记消费；写失败留待重放。
- */
+ 
 object GroupReplyReceiver {
     suspend fun saveFormal(app: Application, groupId: Long, companionId: Long, messageId: String, content: String, createdAt: Long, payload: String, authorStableId: String): com.xingshi.ai.database.BackendDeliveryReceipt {
         val db = AppDatabase.getDatabase(app)
@@ -45,7 +42,7 @@ object GroupReplyReceiver {
 
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     private val buffers = mutableMapOf<String, StringBuilder>()
-    /** 上次保存失败的完整正文：重放同样分片时直接复用，避免前缀重复拼接。 */
+     
     private val retryTexts = mutableMapOf<String, String>()
     private val inFlight = mutableSetOf<String>()
     private val handled = java.util.Collections.synchronizedSet(mutableSetOf<String>())
@@ -75,7 +72,7 @@ object GroupReplyReceiver {
                 .getStringSet(KEY_HANDLED, emptySet()).orEmpty()
         )
         accountJobs += scope.launch { consume(GroupReplyHandoff.events, app) }
-        // 公开网关回复源也必须接到同一应用级接收器；ServiceRegistry 可晚于应用启动注册。
+        
         accountJobs += scope.launch {
             var currentType: Class<*>? = null
             while (true) {
@@ -84,7 +81,7 @@ object GroupReplyReceiver {
                     if (gateway != null && gateway.javaClass != currentType) {
                         currentType = gateway.javaClass
                         launch { consume(gateway.replyEvents, app) }
-                        // 网关晚到：补交建群时缺失的同步责任。
+                        
                         launch { GroupConversationSync.retryPending(app) }
                     }
                 }
@@ -126,7 +123,7 @@ object GroupReplyReceiver {
                 }
                 fullForRetry = full
                 if (full.isBlank()) {
-                    // 空终结没有可交付正文：不保存，但视为已消费，避免无限重放。
+                    
                     markHandled(app, key)
                     return@collect
                 }
@@ -165,7 +162,7 @@ object GroupReplyReceiver {
                 markHandled(app, key)
                 if (!inserted) SecureLog.i("GroupReplyReceiver", "Duplicate group reply ignored: $linkString")
             } catch (e: Exception) {
-                // 同一 operation 的重放按完整正文重试，不把前缀重复拼进去。
+                
                 if (fullForRetry != null) synchronized(lock) { retryTexts[key] = fullForRetry }
                 SecureLog.e("GroupReplyReceiver", "save group reply failed", e)
             } finally {

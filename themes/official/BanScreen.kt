@@ -63,7 +63,7 @@ fun BanScreen(
     ) }
     val banInfo = remember { BanManager.getBanInfo(context) }
 
-    // 实时重新计算倒计时
+    
     LaunchedEffect(Unit) {
         while (true) {
             val remaining = banInfo.banUntil - System.currentTimeMillis()
@@ -148,7 +148,7 @@ fun BanScreen(
                 }
             }
 
-            // Countdown card
+            
             item {
                 Box(
                     modifier = Modifier
@@ -207,7 +207,7 @@ fun BanScreen(
                 Spacer(modifier = Modifier.height(16.dp))
             }
 
-            // 答题按钮（始终可见）
+            
             item {
                 Button(
                     onClick = { onStartQuiz(banInfo.quizQuestionCount) },
@@ -236,7 +236,7 @@ fun BanScreen(
                 Spacer(modifier = Modifier.height(12.dp))
             }
 
-            // 违规说明
+            
             item {
                 Box(
                     modifier = Modifier
@@ -278,7 +278,7 @@ fun BanScreen(
                 Spacer(modifier = Modifier.height(16.dp))
             }
 
-            // 封禁级别表
+            
             item {
                 Box(
                     modifier = Modifier
@@ -305,7 +305,7 @@ fun BanScreen(
                 Spacer(modifier = Modifier.height(4.dp))
             }
 
-            // 各级别
+            
             items(BanManager.getViolationLevels()) { level ->
                 val bgColor = when (level.level) {
                     ContentFilter.ViolationLevel.LOW -> Color(0xFFFFF8E1)

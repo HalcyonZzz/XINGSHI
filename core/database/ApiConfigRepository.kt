@@ -60,7 +60,7 @@ class ApiConfigRepository(
         val decrypted = decryptForUse(config, secretCodec) ?: return null
         if (needsSecretMigration(config, secretCodec)) {
             val encrypted = encryptForStorage(decrypted, secretCodec)
-            // 明文 codec 下 encryptForStorage 不会改变该行，别做无意义的写回。
+            
             if (encrypted != config) {
                 apiConfigDao.updateConfig(encrypted)
             }

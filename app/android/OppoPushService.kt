@@ -6,13 +6,7 @@ import android.os.Bundle
 import com.xingshi.ai.common.SecureLog
 import com.xingshi.ai.push.dispatch.PushMessageDispatcher
 
-/**
- * OPPO 推送透传消息服务（兼容实现）。
- *
- * OPPO Push SDK 会通过 Intent 将透传消息投递到本 Service。
- * 这里解析 Intent 中常见的 payload / message / content 等 extra，
- * 统一分发给本地通知系统。
- */
+ 
 class OppoPushService : Service() {
 
     companion object {

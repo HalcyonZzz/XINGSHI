@@ -114,9 +114,12 @@ fun CreateCompanionScreen(
     var saveBlocked by remember { mutableStateOf(false) }
     val deleteCompleted by viewModel.deleteCompleted.collectAsState()
     val deleteError by viewModel.deleteError.collectAsState()
+    val deleteErrorText = deleteError?.let { notice ->
+        themeText(notice.key) + if (notice.detail.isBlank()) "" else "：${notice.detail}"
+    }
     val loaded = !isEditMode || existing != null
 
-    // 装载原角色与操作结果不依赖官方绘制：作者覆盖编辑页也能读到原数据并呈现保存状态。
+    
     LaunchedEffect(companionId) {
         if (companionId != null) viewModel.loadCompanion(companionId)
     }
@@ -159,7 +162,7 @@ fun CreateCompanionScreen(
                     "loaded" to loaded.toString(),
                     "save_blocked" to saveBlocked.toString(),
                     "delete_completed" to deleteCompleted.toString(),
-                    "delete_error" to deleteError.orEmpty()
+                    "delete_error" to deleteErrorText.orEmpty()
                 ),
                 dispatch = { action ->
                     when (action) {
@@ -168,7 +171,7 @@ fun CreateCompanionScreen(
                             "import_prompt" -> promptFilePicker.launch("text/*")
                             "save_companion" -> action.payload.let { payload ->
                                 if (isEditMode && existing == null) {
-                                    // 原对象尚未装载成功时禁止用空实体整行更新，避免清空其他字段
+                                    
                                     saveBlocked = true
                                     return@let
                                 }
@@ -235,10 +238,12 @@ private fun CreateCompanionScreenContent(
     var showImportErrorDialog by remember { mutableStateOf(false) }
     var importErrorMessage by remember { mutableStateOf("") }
 
-    // 监听 saveCompleted 跳转
+    
     val saveCompleted by viewModel.saveCompleted.collectAsState()
     val saveError by viewModel.saveError.collectAsState()
     val isSaving by viewModel.isSaving.collectAsState()
+    val deleteCompleted by viewModel.deleteCompleted.collectAsState()
+    val deleteError by viewModel.deleteError.collectAsState()
 
     LaunchedEffect(saveCompleted) {
         if (saveCompleted) {
@@ -251,6 +256,24 @@ private fun CreateCompanionScreenContent(
         saveError?.let {
             android.widget.Toast.makeText(context, it, android.widget.Toast.LENGTH_LONG).show()
             viewModel.consumeSaveError()
+        }
+    }
+
+    LaunchedEffect(deleteCompleted) {
+        if (deleteCompleted) {
+            viewModel.resetDeleteCompleted()
+            onNavigateBack()
+        }
+    }
+
+    val deleteErrorText = deleteError?.let { notice ->
+        themeText(notice.key) + if (notice.detail.isBlank()) "" else "：${notice.detail}"
+    }
+
+    LaunchedEffect(deleteErrorText) {
+        deleteErrorText?.let {
+            android.widget.Toast.makeText(context, it, android.widget.Toast.LENGTH_LONG).show()
+            viewModel.consumeDeleteError()
         }
     }
 
@@ -307,7 +330,7 @@ private fun CreateCompanionScreenContent(
         existingCompanion?.let(::populateExistingCompanion)
     }
 
-    // 非编辑模式下，全局角色切换时跟随变化
+    
     LaunchedEffect(globalRole) {
         if (!isEditMode && existingCompanion == null) {
             role = globalRole
@@ -486,7 +509,7 @@ private fun CreateCompanionScreenContent(
             ) {
                 Spacer(modifier = Modifier.height(4.dp))
 
-                // 角色类型选择
+                
                 AnimatedVisibility(
                     visible = isVisible,
                     enter = fadeIn(tween(400, delayMillis = 80)) +
@@ -647,7 +670,7 @@ private fun CreateCompanionScreenContent(
                         onClick = {
                             if (isFormValid) {
                                 val base = existingCompanion
-                                // 编辑态必须等原对象装载完成再保存，避免用空实体覆盖整行。
+                                
                                 if (isEditMode && base == null) return@Button
                                 val companion = if (base != null) {
                                     base.copy(
@@ -770,7 +793,6 @@ private fun CreateCompanionScreenContent(
                             viewModel.deleteCompanion(it)
                         }
                         showDeleteDialog = false
-                        onNavigateBack()
                     }
                 ) {
                     Text(themeText("companion_delete"), color = colorScheme.error)

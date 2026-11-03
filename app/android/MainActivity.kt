@@ -37,20 +37,11 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 
-/**
- * 应用主入口 Activity — v2.0 精简版。
- *
- * 职责:
- *   生命周期管理 (onCreate / onResume / onPause / onDestroy)
- *   权限请求 (通知)
- *   系统栏初始化 (委托 SystemBarController)
- *   帧率策略
- *   保活/后台服务启动
- */
+ 
 class MainActivity : ComponentActivity() {
 
     private val appScope = CoroutineScope(Dispatchers.Main)
-    private var memoryAlertActive = false // 滞环: 触发后需降到阈值以下才解除
+    private var memoryAlertActive = false 
 
     private val requestPermissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestPermission()
@@ -68,31 +59,31 @@ class MainActivity : ComponentActivity() {
     
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        // 启动即以系统安装版本判断更新是否完成，并清理残留临时包
+        
         appScope.launch(Dispatchers.IO) {
             runCatching { AppUpdateManager.cleanupOnStart(applicationContext) }
         }
-        // WorkManager must be initialized before any schedule() call
+        
         try { androidx.work.WorkManager.initialize(this, androidx.work.Configuration.Builder().setMinimumLoggingLevel(android.util.Log.WARN).build()) } catch (_: Exception) {}
         enableEdgeToEdge()
         window.decorView.post { SystemBarController.applySystemBars(this) }
 
-        // 帧率请求统一由框架处理（AUTO 不固定 modeId，显式档位只设 refreshRate）
+        
         FrameRateController.applySaved(window, this)
 
-        // 硬件加速
+        
         window.setFlags(
             WindowManager.LayoutParams.FLAG_HARDWARE_ACCELERATED,
             WindowManager.LayoutParams.FLAG_HARDWARE_ACCELERATED
         )
 
-        // 异形屏适配
+        
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
             window.attributes.layoutInDisplayCutoutMode =
                 WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES
         }
 
-        // 用户协议在登录/注册页内以勾选方式确认，不再弹出整页拦截
+        
         val activity = this
         setContent {
             val isServiceReady by ServiceRegistry.initialized.collectAsStateWithLifecycle()
@@ -102,8 +93,8 @@ class MainActivity : ComponentActivity() {
                 Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
                     when {
                         !isServiceReady -> {
-                            // 等待跨模块依赖注册中心就绪，避免冷启动后快速进入
-                            // 创建人设等页面时 ServiceRegistry.getOrThrow 抛异常导致闪退。
+                            
+                            
                             Box(
                                 modifier = Modifier.fillMaxSize(),
                                 contentAlignment = Alignment.Center
@@ -127,10 +118,10 @@ class MainActivity : ComponentActivity() {
             }
         }
 
-        // 后台服务 + 权限
+        
         requestNotificationPermission()
         CompanionKeepAliveService.start(this)
-        // IQOO/OriginOS 设备启用 JobScheduler 第三层兜底保活
+        
         if (RomUtils.isVivo) {
             scheduleIqooKeepAliveJob()
         }
@@ -138,12 +129,7 @@ class MainActivity : ComponentActivity() {
         startMemoryMonitor()
     }
 
-    /**
-     * IQOO/OriginOS 专用 JobScheduler 第三层保活调度。
-     *
-     * OriginOS 对前台服务和 WorkManager 都有严格限制，
-     * 使用 JobScheduler 作为兜底机制：每 15 分钟检查并重启保活服务。
-     */
+     
     private fun scheduleIqooKeepAliveJob() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             try {
@@ -170,10 +156,7 @@ class MainActivity : ComponentActivity() {
         private const val IQOO_KEEP_ALIVE_JOB_ID = 10001
     }
 
-    /**
-     * 内存管理控制回路 — 每3秒检查一次内存使用率。
-     * 滞环: 触发 85% 后需降到 60% 以下才解除。
-     */
+     
     private fun startMemoryMonitor() {
         appScope.launch {
             val runtime = Runtime.getRuntime()
@@ -184,7 +167,7 @@ class MainActivity : ComponentActivity() {
                 val ratio = used.toFloat() / maxMem.toFloat()
 
                 if (ratio > 0.90f) {
-                    // 清空缓存 — 通知系统内存压力，由系统自行调度GC
+                    
                     android.util.Log.w("MemoryMonitor", "CRITICAL: ${(ratio * 100).toInt()}% — clearing caches, notifying memory pressure")
                     memoryAlertActive = true
                 } else if (ratio > 0.85f && !memoryAlertActive) {
@@ -200,7 +183,7 @@ class MainActivity : ComponentActivity() {
 
     override fun onNewIntent(intent: android.content.Intent) {
         super.onNewIntent(intent)
-        // singleTask 热通知只走这里：把新 Intent 交给页面消费，否则点击通知不会跳转。
+        
         setIntent(intent)
         com.xingshi.ai.common.AppIntentRouter.publish(intent)
     }

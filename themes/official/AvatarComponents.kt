@@ -17,10 +17,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 
-/**
- * 通用伴侣头像组件 — 统一处理图片加载、首字母兜底、圆形裁剪。
- * avatarUrl 变化时 Coil 自动按新 URL 加载，无需外部 key()。
- */
+ 
 @Composable
 fun CompanionAvatar(
     avatarUrl: String?,
@@ -54,9 +51,7 @@ fun CompanionAvatar(
     }
 }
 
-/**
- * 用户头像组件 — 对称设计，与 CompanionAvatar 保持一致。
- */
+ 
 @Composable
 fun UserAvatar(
     avatarUrl: String?,

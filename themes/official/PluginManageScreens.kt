@@ -165,7 +165,7 @@ private fun PluginManageScreenContent(
                                     color = MaterialTheme.colorScheme.error
                                 )
                             }
-                            // 可选能力提供者由用户在既有插件管理页显式绑定；持久化在 PluginManager，不新增配置页。
+                            
                             val loadedInstance = manager.loadedPlugin(id)
                             Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
                                 if (loadedInstance is com.xingshi.ai.plugins.api.SpeechRecognitionPlugin) {
@@ -239,7 +239,7 @@ private fun PluginManageScreenContent(
                 TextButton(onClick = {
                     val id = record.manifest.id
                     pendingUninstall = null
-                    // 卸载要等发送口收尾，放到 IO 上跑，别占住主线程
+                    
                     scope.launch(Dispatchers.IO) {
                         manager.uninstall(id)
                         message = removedLabel

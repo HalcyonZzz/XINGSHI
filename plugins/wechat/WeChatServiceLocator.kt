@@ -36,7 +36,7 @@ object WeChatServiceLocator {
         }
     }
 
-    /** 退出登录后丢弃旧仓库：其 processScope 已取消，再次登录必须重建实例。 */
+     
     fun resetRepository() {
         synchronized(this) {
             messageRepository = null

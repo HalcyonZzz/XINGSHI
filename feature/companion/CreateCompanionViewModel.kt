@@ -8,8 +8,10 @@ import com.xingshi.ai.database.model.CompanionEntity
 import com.xingshi.ai.database.repository.CompanionRepository
 import com.xingshi.ai.database.repository.UserRepository
 import com.xingshi.ai.common.ImageUtils
+import com.xingshi.ai.database.viewmodel.CompanionCloudDeletion
+import com.xingshi.ai.database.viewmodel.CompanionDeleteNotice
+import com.xingshi.ai.database.viewmodel.CompanionDeletionOutcome
 import com.xingshi.ai.domain.ServiceRegistry
-import androidx.core.content.edit
 import com.xingshi.ai.common.SecureLog
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -20,16 +22,16 @@ import kotlinx.coroutines.Dispatchers
 
 import kotlinx.coroutines.flow.asStateFlow
 
-/** 内置示例伴侣的历史标签，用于在删除时记录用户意图。 */
-private const val BUILTIN_COMPANION_TAG = "default-test-companion"
-
 class CreateCompanionViewModel(application: Application) : AndroidViewModel(application) {
     private val partition = com.xingshi.ai.common.AccountStorage.partition
     private val cloud = ServiceRegistry.get(com.xingshi.ai.domain.CompanionCloudGateway::class.java)
-    // 延迟获取：页面可能在 ServiceRegistry 初始化完成前被导航到
-    // （冷启动 deep link / 配置变更），构造函数内立即 getOrThrow 会抛 IllegalStateException。
+    
+    
     private val repository by lazy { ServiceRegistry.getOrThrow(CompanionRepository::class.java) }
     private val userRepository by lazy { ServiceRegistry.getOrThrow(UserRepository::class.java) }
+    private val deletion = CompanionCloudDeletion {
+        ServiceRegistry.get(com.xingshi.ai.domain.CompanionCloudGateway::class.java)
+    }
 
     val selectedRole: StateFlow<CompanionRole> by lazy { userRepository.selectedRole }
 
@@ -51,10 +53,7 @@ class CreateCompanionViewModel(application: Application) : AndroidViewModel(appl
         }
     }
 
-    /**
-     * 直接保存人设。所有 IO/数据库操作在 Dispatchers.IO 执行，异常被捕获并暴露为 saveError，
-     * 避免未处理异常导致应用闪退。
-     */
+     
     fun saveCompanion(companion: CompanionEntity, isEditMode: Boolean) {
         viewModelScope.launch {
             _isSaving.value = true
@@ -76,8 +75,8 @@ class CreateCompanionViewModel(application: Application) : AndroidViewModel(appl
                         return@withContext
                     }
                     if (isEditMode) {
-                        // 编辑保存统一在这里合并未编辑字段：null 表示本次没提供该字段，
-                        // 不能把 tags / backstory / speakingStyle / createdAt 覆盖成空。
+                        
+                        
                         val current = repository.getCompanionById(companion.id)
                             ?: error("原人设未加载，无法保存")
                         repository.updateCompanion(
@@ -120,8 +119,8 @@ class CreateCompanionViewModel(application: Application) : AndroidViewModel(appl
 
     private val _deleteCompleted = MutableStateFlow(false)
     val deleteCompleted: StateFlow<Boolean> = _deleteCompleted.asStateFlow()
-    private val _deleteError = MutableStateFlow<String?>(null)
-    val deleteError: StateFlow<String?> = _deleteError.asStateFlow()
+    private val _deleteError = MutableStateFlow<CompanionDeleteNotice?>(null)
+    val deleteError: StateFlow<CompanionDeleteNotice?> = _deleteError.asStateFlow()
 
     fun resetDeleteCompleted() {
         _deleteCompleted.value = false
@@ -133,23 +132,12 @@ class CreateCompanionViewModel(application: Application) : AndroidViewModel(appl
 
     fun deleteCompanion(companion: CompanionEntity) {
         viewModelScope.launch {
-            if (companion.tags.orEmpty()
-                    .split(',')
-                    .map { it.trim() }
-                    .any { it == BUILTIN_COMPANION_TAG }
-            ) {
-                getApplication<Application>()
-                    .getSharedPreferences("default_companion", android.content.Context.MODE_PRIVATE)
-                    .edit { putBoolean("deleted_by_user", true) }
-            }
-            try {
-                repository.deleteCompanion(companion)
-                _deleteCompleted.value = true
-            } catch (e: CancellationException) {
-                throw e
-            } catch (e: Exception) {
-                SecureLog.e("CreateCompanionVM", "删除人设失败", e)
-                _deleteError.value = "删除失败：${e.message ?: "未知错误"}"
+            _deleteError.value = null
+            when (val outcome = deletion.delete(companion.id)) {
+                CompanionDeletionOutcome.Deleted -> _deleteCompleted.value = true
+                CompanionDeletionOutcome.Pending -> _deleteError.value = CompanionDeleteNotice("ui_companion_delete_pending")
+                is CompanionDeletionOutcome.Failed ->
+                    _deleteError.value = CompanionDeleteNotice("ui_companion_delete_failed", outcome.reason)
             }
         }
     }

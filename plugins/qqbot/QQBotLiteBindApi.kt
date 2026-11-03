@@ -7,17 +7,7 @@ import retrofit2.http.Body
 import retrofit2.http.Headers
 import retrofit2.http.POST
 
-/**
- * QQ 开放平台 Lite 扫码绑定 API（Hermes 协议）。
- *
- * 流程：
- * 1. [createBindTask] 生成 AES key → POST 创建一次性 task → 拿到 task_id
- * 2. 将 task_id 拼成扫码 URL，生成二维码展示给用户
- * 3. [pollBindResult] 每 2 秒轮询一次，直到 status=2（完成）或 status=3（过期）
- * 4. 拿到 bot_encrypt_secret 后用本地 AES key 解密，得到 client_secret
- *
- * 参考：E:\hermes-agent-new\docs\qqbot-bind.md
- */
+ 
 interface QQBotLiteBindApi {
 
     @POST("lite/create_bind_task")
