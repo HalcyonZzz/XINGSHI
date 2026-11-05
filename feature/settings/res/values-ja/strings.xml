@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="ui_video_config_title">動画認識</string>
+    <string name="ui_video_config_add">動画認識設定を追加</string>
+    <string name="ui_video_config_missing">未設定</string>
+    <string name="ui_video_config_provider">プロバイダー</string>
+    <string name="ui_video_config_base_url">サービスURL</string>
+    <string name="ui_video_config_model">モデル</string>
+    <string name="ui_video_config_api_key">API Key</string>
+    <string name="ui_video_config_enabled">有効にする</string>
+    <string name="ui_video_config_save">保存</string>
+    <string name="ui_video_config_delete">削除</string>
+    <string name="ui_video_config_test">接続テスト</string>
+    <string name="ui_video_config_testing">テスト中…</string>
+    <string name="ui_video_config_audio_supported">このプロバイダーは動画内の音声に対応しており、確認できた会話を含める場合があります。</string>
+    <string name="ui_video_config_audio_unsupported">このプロバイダーは動画内の音声を保証しません。結果は映像のみを説明し、会話を推測しません。</string>
+    <string name="ui_video_config_audio_unknown">音声対応は未確認です。結果は映像のみを説明し、非対応の場合は明示します。</string>
+    <string name="ui_video_config_saved">動画認識設定を保存しました</string>
+    <string name="ui_video_config_deleted">動画認識設定を削除しました</string>
+    <string name="ui_video_config_enabled_on">動画認識を有効にしました</string>
+    <string name="ui_video_config_enabled_off">動画認識を無効にしました</string>
+    <string name="ui_video_config_key_required">API Key を入力してください</string>
+    <string name="ui_video_config_url_required">サービスURLを入力してください</string>
+    <string name="ui_video_config_model_required">モデル名を入力してください</string>
+    <string name="ui_video_config_save_failed">保存に失敗しました。再試行してください</string>
+    <string name="ui_video_config_delete_failed">削除に失敗しました。再試行してください</string>
+    <string name="ui_video_config_test_ok">接続しました</string>
+    <string name="ui_video_config_test_needs_key">API Key が未入力のためテストできません</string>
+    <string name="ui_video_config_test_needs_url">サービスURLが未入力のためテストできません</string>
+    <string name="ui_video_config_test_needs_model">モデルが未入力のためテストできません</string>
+    <string name="ui_video_config_test_no_network">ネットワークが利用できません</string>
+    <string name="ui_video_config_test_timeout">接続がタイムアウトしました</string>
+    <string name="ui_video_config_test_auth_failed">認証に失敗しました。API Key を確認してください</string>
+    <string name="ui_video_config_test_rate_limited">リクエストが多すぎます。しばらくしてから再試行してください</string>
+    <string name="ui_video_config_test_model_rejected">サービスがこのモデルまたはエンドポイントを受け付けません。URL とモデルを確認してください</string>
+    <string name="ui_video_config_test_upstream_failed">サービスが一時的に利用できません。後でもう一度お試しください</string>
+    <string name="ui_video_config_test_failed">接続テストに失敗しました</string>
+    <string name="ui_video_config_test_cancelled">テストはキャンセルされました</string>
+</resources>

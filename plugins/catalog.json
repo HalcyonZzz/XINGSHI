@@ -1,0 +1,84 @@
+{
+  "plugins": [
+    {
+      "id": "stt",
+      "name": "语音识别",
+      "author": "星识",
+      "description": "",
+      "version": "1.0.1",
+      "packageUrl": "https://github.com/HalcyonZzz/XINGSHI/releases/download/plugin-stt-v1.0.1/stt-1.0.1.zip",
+      "sha256": "859a8128870e6189651d2dac8a33d6e000dc89931e82df8c06b4183c5e87ff77",
+      "icon": "Mic"
+    },
+    {
+      "id": "tts",
+      "name": "语音合成",
+      "author": "星识",
+      "description": "",
+      "version": "1.4.5",
+      "packageUrl": "https://github.com/HalcyonZzz/XINGSHI/releases/download/plugin-tts-v1.4.5/tts-1.4.5.zip",
+      "sha256": "54f2e1c0479a2743b6dd336a0ab26e6a3b40e7f387a37b4acf81913681a2e8eb",
+      "icon": "VolumeUp"
+    },
+    {
+      "id": "sample-vision",
+      "name": "视觉识别",
+      "author": "星识",
+      "description": "",
+      "version": "1.0.11",
+      "packageUrl": "https://github.com/HalcyonZzz/XINGSHI/releases/download/plugin-sample-vision-v1.0.11/sample-vision-1.0.11.zip",
+      "sha256": "e333060ca9256b7de2eb187311960e5e9383a2972923ba2f436835939a50d372",
+      "icon": "Image"
+    },
+    {
+      "id": "qqbot",
+      "name": "QQ 机器人",
+      "author": "星识",
+      "description": "",
+      "version": "1.0.2",
+      "packageUrl": "https://github.com/HalcyonZzz/XINGSHI/releases/download/plugin-qqbot-v1.0.2/qqbot-1.0.2.zip",
+      "sha256": "52aedcf0e2258ab5d36997b8726185d06a81605c71b16c658df3d798ead692ab",
+      "icon": "Message"
+    },
+    {
+      "id": "wechat",
+      "name": "微信助手",
+      "author": "星识",
+      "description": "",
+      "version": "1.0.2",
+      "packageUrl": "https://github.com/HalcyonZzz/XINGSHI/releases/download/plugin-wechat-v1.0.2/wechat-1.0.2.zip",
+      "sha256": "a7c572c302c634c12ec118e01d9990c9dfc5bdda2a1a20579403a8ba7804e702",
+      "icon": "Message"
+    },
+    {
+      "id": "bilibili",
+      "name": "Bilibili",
+      "author": "星识",
+      "description": "",
+      "version": "1.0.1",
+      "packageUrl": "https://github.com/HalcyonZzz/XINGSHI/releases/download/plugin-bilibili-v1.0.1/bilibili-1.0.1.zip",
+      "sha256": "015a6702080f3211cafba96202f61e01be4335f25a72a30365e640d03fbe0498",
+      "icon": "video"
+    },
+    {
+      "id": "document-parser",
+      "name": "文档解析",
+      "author": "星识",
+      "description": "",
+      "version": "1.0.1",
+      "packageUrl": "https://github.com/HalcyonZzz/XINGSHI/releases/download/plugin-document-parser-v1.0.1/document-parser-1.0.1.zip",
+      "sha256": "cc06d17f82cda5560a554d724db5f42af4628db76bcf451579035ff475a30968",
+      "icon": "file"
+    },
+    {
+      "id": "video-analysis",
+      "name": "视频解析",
+      "author": "星识",
+      "description": "",
+      "version": "1.0.1",
+      "packageUrl": "https://github.com/HalcyonZzz/XINGSHI/releases/download/plugin-video-analysis-v1.0.1/video-analysis-1.0.1.zip",
+      "sha256": "bac18bf768c40744ec63da602a061d293add6880b73933486abb913df28bb242",
+      "icon": "video"
+    }
+  ]
+}

@@ -1,0 +1,103 @@
+# Build outputs
+/build/
+/app/android/build/
+/app/android/release/
+/app/android/.cxx_native/
+/core/*/build/
+/core/*/.cxx/
+/feature/*/build/
+*.apk
+*.aab
+
+# Gradle
+.gradle/
+local.properties
+
+# IDE
+.idea/
+*.iml
+
+# Generated security files
+core/security/src/main/cpp/generated/
+
+# SECRETS — NEVER COMMIT
+release.keystore
+.xingshi_wb_key
+core/security/src/main/cpp/wb_tables.inc
+core/security/src/main/cpp/*_demo.inc
+core/security/src/main/cpp/.backup_*/
+
+# Build artifacts — NEVER COMMIT
+core/security/src/main/cpp/obj/
+app/android/obj/
+app/android/jniLibs/
+app/android/assets/xingshi_shell/
+*.o
+*.o.d
+linker.list
+
+# Python cache
+__pycache__/
+*.pyc
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Temporary files
+fix_progress.json
+generate_pdf.py
+fetchmodels_code.txt
+viewmodel_code.txt
+release_body.txt
+wechat_analysis_report.md
+add_*.ps1
+modify_*.ps1
+remove_*.ps1
+update_*.ps1
+install_*.bat
+build_error*.log
+build_output.txt
+build_ksp_final.txt
+build_signed.bat
+branch_diff_report.md
+debug-*.md
+
+# Docs
+_push_tmp/
+.workbuddy/
+.hermes/
+.trae/
+MODULE_ARCHITECTURE.pdf
+
+# Source-only repository: no docs, tickets, reports or acceptance evidence
+*.md
+!/README.md
+!/plugins/framework/AGENTS.md
+!/themes/framework/AGENTS.md
+*.html
+.evidence/
+.verify/
+.kotlin/
+
+# 本地真实凭据与临时密钥副本（不得入库）
+*.jks
+release-signing.jks
+真实模型测试api-key.txt
+*key*.txt
+api-key*.txt
+
+# 插件源码只在本地构建，公开仓库仅保留框架与目录
+/plugins/*
+!/plugins/framework/
+!/plugins/catalog.json
+.codegraph/
+# 插件自测材料随插件源码留在本地
+/tests/plugins-*/
+!/tests/plugins-framework/
+# 本地探针工具，不入公开仓库
+/app/g03test/
+# 发布与内容工具留在本地
+/tools/
+# 测试源码留在本地
+/tests/
