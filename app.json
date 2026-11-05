@@ -1,0 +1,10 @@
+{
+  "applicationId": "com.xingshi.ai",
+  "versionCode": 26,
+  "versionName": "0.1.13",
+  "minSdk": 26,
+  "apkUrl": "https://github.com/HalcyonZzz/XINGSHI/releases/download/app-v0.1.13-26/XINGSHI-0.1.13.apk",
+  "sizeBytes": 6120847,
+  "sha256": "d9588921f9230e99790e5aa7ffd2ec64b859bc96a24c9bde42bfedc35ea56618",
+  "releaseNotes": ""
+}

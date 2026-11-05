@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="ui_video_config_title">影片辨識</string>
+    <string name="ui_video_config_add">新增影片辨識設定</string>
+    <string name="ui_video_config_missing">尚未設定</string>
+    <string name="ui_video_config_provider">供應商</string>
+    <string name="ui_video_config_base_url">服務位址</string>
+    <string name="ui_video_config_model">模型</string>
+    <string name="ui_video_config_api_key">API Key</string>
+    <string name="ui_video_config_enabled">啟用</string>
+    <string name="ui_video_config_save">儲存</string>
+    <string name="ui_video_config_delete">刪除</string>
+    <string name="ui_video_config_test">測試連線</string>
+    <string name="ui_video_config_testing">測試中…</string>
+    <string name="ui_video_config_audio_supported">此供應商支援影片內的音軌，辨識結果可包含可確認的對白。</string>
+    <string name="ui_video_config_audio_unsupported">此供應商不保證影片內的音軌，結果僅描述畫面，不推測對白。</string>
+    <string name="ui_video_config_audio_unknown">音軌能力尚未確認，結果僅描述畫面；不支援時會明確說明。</string>
+    <string name="ui_video_config_saved">影片辨識設定已儲存</string>
+    <string name="ui_video_config_deleted">影片辨識設定已清除</string>
+    <string name="ui_video_config_enabled_on">影片辨識已啟用</string>
+    <string name="ui_video_config_enabled_off">影片辨識已停用</string>
+    <string name="ui_video_config_key_required">請填寫 API Key</string>
+    <string name="ui_video_config_url_required">請填寫服務位址</string>
+    <string name="ui_video_config_model_required">請填寫模型名稱</string>
+    <string name="ui_video_config_save_failed">儲存失敗，請重試</string>
+    <string name="ui_video_config_delete_failed">刪除失敗，請重試</string>
+    <string name="ui_video_config_test_ok">連線成功</string>
+    <string name="ui_video_config_test_needs_key">未填寫 API Key，無法測試</string>
+    <string name="ui_video_config_test_needs_url">未填寫服務位址，無法測試</string>
+    <string name="ui_video_config_test_needs_model">未填寫模型，無法測試</string>
+    <string name="ui_video_config_test_no_network">網路無法使用，無法連線</string>
+    <string name="ui_video_config_test_timeout">連線逾時</string>
+    <string name="ui_video_config_test_auth_failed">驗證失敗，請檢查 API Key</string>
+    <string name="ui_video_config_test_rate_limited">請求過於頻繁，請稍後再試</string>
+    <string name="ui_video_config_test_model_rejected">服務不接受此模型或介面，請檢查位址與模型</string>
+    <string name="ui_video_config_test_upstream_failed">服務暫時無法使用，請稍後再試</string>
+    <string name="ui_video_config_test_failed">連線測試失敗</string>
+    <string name="ui_video_config_test_cancelled">測試已取消</string>
+</resources>

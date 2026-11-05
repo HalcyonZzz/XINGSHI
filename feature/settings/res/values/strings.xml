@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="ui_video_config_title">视频识别</string>
+    <string name="ui_video_config_add">添加视频识别配置</string>
+    <string name="ui_video_config_missing">未配置</string>
+    <string name="ui_video_config_provider">供应商</string>
+    <string name="ui_video_config_base_url">服务地址</string>
+    <string name="ui_video_config_model">模型</string>
+    <string name="ui_video_config_api_key">API Key</string>
+    <string name="ui_video_config_enabled">启用</string>
+    <string name="ui_video_config_save">保存</string>
+    <string name="ui_video_config_delete">删除</string>
+    <string name="ui_video_config_test">测试连接</string>
+    <string name="ui_video_config_testing">测试中…</string>
+    <string name="ui_video_config_audio_supported">该渠道支持视频内音轨，识别结果可包含可确认的对白。</string>
+    <string name="ui_video_config_audio_unsupported">该渠道不承诺视频内音轨，结果只描述画面，不推测对白。</string>
+    <string name="ui_video_config_audio_unknown">音轨能力未确认，结果只描述画面；不支持时会明确说明。</string>
+    <string name="ui_video_config_saved">视频识别配置已保存</string>
+    <string name="ui_video_config_deleted">视频识别配置已清除</string>
+    <string name="ui_video_config_enabled_on">视频识别已启用</string>
+    <string name="ui_video_config_enabled_off">视频识别已停用</string>
+    <string name="ui_video_config_key_required">请填写 API Key</string>
+    <string name="ui_video_config_url_required">请填写服务地址</string>
+    <string name="ui_video_config_model_required">请填写模型名称</string>
+    <string name="ui_video_config_save_failed">保存失败，请重试</string>
+    <string name="ui_video_config_delete_failed">删除失败，请重试</string>
+    <string name="ui_video_config_test_ok">连接成功</string>
+    <string name="ui_video_config_test_needs_key">未填写 API Key，无法测试</string>
+    <string name="ui_video_config_test_needs_url">未填写服务地址，无法测试</string>
+    <string name="ui_video_config_test_needs_model">未填写模型，无法测试</string>
+    <string name="ui_video_config_test_no_network">网络不可用，无法连接</string>
+    <string name="ui_video_config_test_timeout">连接超时</string>
+    <string name="ui_video_config_test_auth_failed">鉴权失败，请检查 API Key</string>
+    <string name="ui_video_config_test_rate_limited">请求过于频繁，请稍后重试</string>
+    <string name="ui_video_config_test_model_rejected">服务不接受该模型或接口，请检查地址与模型</string>
+    <string name="ui_video_config_test_upstream_failed">服务暂时不可用，请稍后重试</string>
+    <string name="ui_video_config_test_failed">连接测试失败</string>
+    <string name="ui_video_config_test_cancelled">测试已取消</string>
+</resources>
