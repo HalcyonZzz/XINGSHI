@@ -1,0 +1,9 @@
+- ZIP: root `theme.json`, `strings/<lang>.json` for every declared language, optional `dex/classes.dex`. Follow `ThemeModels.kt` and `ThemePackages.kt`.
+- Set `name`, `author`, and `description` in `theme.json` for the marketplace listing.
+- Custom icon (pending host support): set `"icon": "icon.png"`; include root `icon.png` (static PNG, 256x256 px, <=256 KiB; transparency allowed). Omit for the built-in default.
+- Code themes extend `ThemeCodeUi` (`ThemeAppearance.kt`) with a public no-arg constructor; match manifest `entry` and framework compatibility.
+- Render `ThemePageHost`; reuse its state, item icons (`images[item.key]` when present), IDs, action payloads, and `dispatch`. Preserve `host.content`; call `fallback()` for unimplemented pages.
+- Reuse text keys; prefix new keys `ui_*`. Resolve text through `themeText`, preserving protected text and official language fallback.
+- Match the host Compose toolchain; use `compileOnly` for host-provided dependencies.
+- Verify installation, rendering, actions, switching, and fallback on Android.
+- Submit a PR if you want marketplace distribution; the maintainer handles integration.

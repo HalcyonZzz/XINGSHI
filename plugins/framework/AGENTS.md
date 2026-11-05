@@ -1,0 +1,9 @@
+- Implement `XingShiPlugin` (`api/PluginApi.kt`) with a public no-arg constructor; add optional `api/` capabilities as needed.
+- Declare tools with `PluginTool(name, description, parametersJsonSchema, execute)`. Encapsulate calls; use `PluginRuntime.runToolLoop` for bounded model/tool loops.
+- Return final results through `PluginReport` or the capability's result type; the host owns chat submission.
+- Propagate cancellation, abort in-flight I/O, and release resources in `cleanup()`.
+- ZIP: root `plugin.json`, `classes*.dex`, optional `res/`. Follow `PluginManifest.kt`; match plugin ID/entry and required `minHostApi`.
+- Set `name`, `author`, and `description` in `plugin.json` for the marketplace listing.
+- Custom icon (pending host support): set `"icon": "icon.png"`; include root `icon.png` (static PNG, 256x256 px, <=256 KiB; transparency allowed). Omit for the built-in default.
+- Match the host toolchain; use `compileOnly` for host-provided dependencies. Verify release-host loading and execution on Android.
+- Submit a PR; the maintainer handles marketplace publication and cloud-policy integration.

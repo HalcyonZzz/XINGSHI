@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="ui_video_config_title">Video recognition</string>
+    <string name="ui_video_config_add">Add video recognition configuration</string>
+    <string name="ui_video_config_missing">Not configured</string>
+    <string name="ui_video_config_provider">Provider</string>
+    <string name="ui_video_config_base_url">Service URL</string>
+    <string name="ui_video_config_model">Model</string>
+    <string name="ui_video_config_api_key">API Key</string>
+    <string name="ui_video_config_enabled">Enable</string>
+    <string name="ui_video_config_save">Save</string>
+    <string name="ui_video_config_delete">Delete</string>
+    <string name="ui_video_config_test">Test connection</string>
+    <string name="ui_video_config_testing">Testing…</string>
+    <string name="ui_video_config_audio_supported">This provider supports audio tracks; the result may include confirmed dialogue.</string>
+    <string name="ui_video_config_audio_unsupported">This provider does not guarantee audio tracks; the result describes visuals only and does not guess dialogue.</string>
+    <string name="ui_video_config_audio_unknown">Audio support is unconfirmed; the result describes visuals only and states when audio is not supported.</string>
+    <string name="ui_video_config_saved">Video recognition configuration saved</string>
+    <string name="ui_video_config_deleted">Video recognition configuration removed</string>
+    <string name="ui_video_config_enabled_on">Video recognition enabled</string>
+    <string name="ui_video_config_enabled_off">Video recognition disabled</string>
+    <string name="ui_video_config_key_required">Please enter the API key</string>
+    <string name="ui_video_config_url_required">Please enter the service URL</string>
+    <string name="ui_video_config_model_required">Please enter the model name</string>
+    <string name="ui_video_config_save_failed">Save failed. Try again</string>
+    <string name="ui_video_config_delete_failed">Delete failed. Try again</string>
+    <string name="ui_video_config_test_ok">Connected</string>
+    <string name="ui_video_config_test_needs_key">API key missing; cannot test</string>
+    <string name="ui_video_config_test_needs_url">Service URL missing; cannot test</string>
+    <string name="ui_video_config_test_needs_model">Model missing; cannot test</string>
+    <string name="ui_video_config_test_no_network">Network unavailable; cannot connect</string>
+    <string name="ui_video_config_test_timeout">Connection timed out</string>
+    <string name="ui_video_config_test_auth_failed">Authentication failed. Check the API key</string>
+    <string name="ui_video_config_test_rate_limited">Too many requests. Try again later</string>
+    <string name="ui_video_config_test_model_rejected">The service rejected this model or endpoint. Check the URL and model</string>
+    <string name="ui_video_config_test_upstream_failed">Service temporarily unavailable. Try again later</string>
+    <string name="ui_video_config_test_failed">Connection test failed</string>
+    <string name="ui_video_config_test_cancelled">Test cancelled</string>
+</resources>

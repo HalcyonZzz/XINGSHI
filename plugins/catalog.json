@@ -1,0 +1,84 @@
+{
+  "plugins": [
+    {
+      "id": "stt",
+      "name": "语音识别",
+      "author": "星识",
+      "description": "录音后使用云端语音识别转写为文字，沿原对话入口发送",
+      "version": "1.0.0",
+      "packageUrl": "https://github.com/HalcyonZzz/XINGSHI/releases/download/plugin-stt-v1.0.0/stt-1.0.0.zip",
+      "sha256": "8481fd4540709436018bbfa475641775a6f13e3baa64dc8b40ad00dd3b0585d2",
+      "icon": "Mic"
+    },
+    {
+      "id": "tts",
+      "name": "语音合成",
+      "author": "星识",
+      "description": "把正式文字回复合成为可播放语音，并供语音通话使用",
+      "version": "1.4.4",
+      "packageUrl": "https://github.com/HalcyonZzz/XINGSHI/releases/download/plugin-tts-v1.4.4/tts-1.4.4.zip",
+      "sha256": "4ae743bd0e9f4fe8f7286ba277b56bae9a2a58b8e0262f3d519f7a9a2ef6cbaf",
+      "icon": "VolumeUp"
+    },
+    {
+      "id": "sample-vision",
+      "name": "视觉识别",
+      "author": "星识",
+      "description": "会话中发送图片后自动走公开工具循环识别图片内容并汇报",
+      "version": "1.0.10",
+      "packageUrl": "https://github.com/HalcyonZzz/XINGSHI/releases/download/plugin-sample-vision-v1.0.10/sample-vision-1.0.10.zip",
+      "sha256": "8dafd510f559de84cef85d8d06c619165d15b929824ddbdc6234c69ef07621a6",
+      "icon": "Image"
+    },
+    {
+      "id": "qqbot",
+      "name": "QQ 机器人",
+      "author": "星识",
+      "description": "QQ 官方机器人聊天通道：扫码绑定、WebSocket 收发、联系人映射",
+      "version": "1.0.1",
+      "packageUrl": "https://github.com/HalcyonZzz/XINGSHI/releases/download/plugin-qqbot-v1.0.1/qqbot-1.0.1.zip",
+      "sha256": "4ba2c48ddc88cd3e7daeee33dddc61561057378d250b2013cefe5ba5fa8b8c4c",
+      "icon": "Message"
+    },
+    {
+      "id": "wechat",
+      "name": "微信助手",
+      "author": "星识",
+      "description": "微信通道接入：扫码登录、消息收发与联系人映射",
+      "version": "1.0.1",
+      "packageUrl": "https://github.com/HalcyonZzz/XINGSHI/releases/download/plugin-wechat-v1.0.1/wechat-1.0.1.zip",
+      "sha256": "76689ce53ee28312cde629056c2dcffc82c463207daa9bcc6e3ea22d34b46110",
+      "icon": "Message"
+    },
+    {
+      "id": "bilibili",
+      "name": "B站视频",
+      "author": "星识",
+      "description": "分享哔哩哔哩视频后解析标题、评论资料并随消息发送视频原件",
+      "version": "1.0.0",
+      "packageUrl": "https://github.com/HalcyonZzz/XINGSHI/releases/download/plugin-bilibili-v1.0.0/bilibili-1.0.0.zip",
+      "sha256": "b69520e0f65a61aaf26f8a8f5bf3424633c1d95451767690b25fbe2396ce1fb8",
+      "icon": "video"
+    },
+    {
+      "id": "document-parser",
+      "name": "文档解析",
+      "author": "星识",
+      "description": "把收到的文档解析为可读文本，沿原对话入口发送",
+      "version": "1.0.0",
+      "packageUrl": "https://github.com/HalcyonZzz/XINGSHI/releases/download/plugin-document-parser-v1.0.0/document-parser-1.0.0.zip",
+      "sha256": "4d9752780fb5d638a46f7b8f435599ae01f3ec58e597da8d37a2e588789d779a",
+      "icon": "file"
+    },
+    {
+      "id": "video-analysis",
+      "name": "视频解析",
+      "author": "星识",
+      "description": "解析视频关键帧与音轨信息，供对话理解视频内容",
+      "version": "1.0.0",
+      "packageUrl": "https://github.com/HalcyonZzz/XINGSHI/releases/download/plugin-video-analysis-v1.0.0/video-analysis-1.0.0.zip",
+      "sha256": "55bdd2183c189d19ae01b61ac6492e74842ca14b3420e174d78652729f7e290a",
+      "icon": "video"
+    }
+  ]
+}

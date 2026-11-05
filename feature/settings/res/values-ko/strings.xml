@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="ui_video_config_title">동영상 인식</string>
+    <string name="ui_video_config_add">동영상 인식 설정 추가</string>
+    <string name="ui_video_config_missing">설정 안 됨</string>
+    <string name="ui_video_config_provider">공급자</string>
+    <string name="ui_video_config_base_url">서비스 주소</string>
+    <string name="ui_video_config_model">모델</string>
+    <string name="ui_video_config_api_key">API Key</string>
+    <string name="ui_video_config_enabled">사용</string>
+    <string name="ui_video_config_save">저장</string>
+    <string name="ui_video_config_delete">삭제</string>
+    <string name="ui_video_config_test">연결 테스트</string>
+    <string name="ui_video_config_testing">테스트 중…</string>
+    <string name="ui_video_config_audio_supported">이 공급자는 동영상 내 오디오를 지원하며, 확인된 대사를 결과에 포함할 수 있습니다.</string>
+    <string name="ui_video_config_audio_unsupported">이 공급자는 동영상 내 오디오를 보장하지 않습니다. 결과는 화면만 설명하며 대사를 추측하지 않습니다.</string>
+    <string name="ui_video_config_audio_unknown">오디오 지원 여부가 확인되지 않았습니다. 결과는 화면만 설명하며 지원되지 않으면 명시합니다.</string>
+    <string name="ui_video_config_saved">동영상 인식 설정이 저장되었습니다</string>
+    <string name="ui_video_config_deleted">동영상 인식 설정이 삭제되었습니다</string>
+    <string name="ui_video_config_enabled_on">동영상 인식이 활성화되었습니다</string>
+    <string name="ui_video_config_enabled_off">동영상 인식이 비활성화되었습니다</string>
+    <string name="ui_video_config_key_required">API Key를 입력하세요</string>
+    <string name="ui_video_config_url_required">서비스 주소를 입력하세요</string>
+    <string name="ui_video_config_model_required">모델 이름을 입력하세요</string>
+    <string name="ui_video_config_save_failed">저장하지 못했습니다. 다시 시도하세요</string>
+    <string name="ui_video_config_delete_failed">삭제하지 못했습니다. 다시 시도하세요</string>
+    <string name="ui_video_config_test_ok">연결되었습니다</string>
+    <string name="ui_video_config_test_needs_key">API Key가 없어 테스트할 수 없습니다</string>
+    <string name="ui_video_config_test_needs_url">서비스 주소가 없어 테스트할 수 없습니다</string>
+    <string name="ui_video_config_test_needs_model">모델이 없어 테스트할 수 없습니다</string>
+    <string name="ui_video_config_test_no_network">네트워크를 사용할 수 없습니다</string>
+    <string name="ui_video_config_test_timeout">연결 시간이 초과되었습니다</string>
+    <string name="ui_video_config_test_auth_failed">인증에 실패했습니다. API Key를 확인하세요</string>
+    <string name="ui_video_config_test_rate_limited">요청이 너무 많습니다. 잠시 후 다시 시도하세요</string>
+    <string name="ui_video_config_test_model_rejected">서비스가 이 모델 또는 엔드포인트를 거부했습니다. 주소와 모델을 확인하세요</string>
+    <string name="ui_video_config_test_upstream_failed">서비스를 일시적으로 사용할 수 없습니다. 나중에 다시 시도하세요</string>
+    <string name="ui_video_config_test_failed">연결 테스트에 실패했습니다</string>
+    <string name="ui_video_config_test_cancelled">테스트가 취소되었습니다</string>
+</resources>

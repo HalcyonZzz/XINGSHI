@@ -1,0 +1,10 @@
+{
+  "applicationId": "com.xingshi.ai",
+  "versionCode": 23,
+  "versionName": "0.1.10",
+  "minSdk": 26,
+  "apkUrl": "https://github.com/HalcyonZzz/XINGSHI/releases/download/app-v0.1.10-23/XINGSHI-0.1.10.apk",
+  "sizeBytes": 5910753,
+  "sha256": "d7b96264d32df79e4fdb84ad22b6ac9cc7c984884f2398d04183dba8b2afc282",
+  "releaseNotes": "更新插件市场与在线更新；优化附件取材与重试；修复若干稳定性问题"
+}
